@@ -12,7 +12,7 @@ var appState = {
     tableThickness: 3, // Varsayılan kalınlık (cm) (Default thickness in cm)
     currentMaterial: 'ceviz', // Mevcut malzeme (Current material)
     edgeStyle: 'straight', // Kenar stili (Edge style)
-    legStyle: 'standard', // Ayak stili ('standard' veya 'u-shape' olabilir) (Leg style, can be 'standard' or 'u-shape')
+    legStyle: 'standard', // Ayak stili ('standard', 'u-shape', 'x-shape', 'l-shape' olabilir) (Leg style)
     scene: null, // Three.js sahnesi (Three.js scene)
     renderer: null, // Three.js renderer
     camera: null, // Three.js kamera (Three.js camera)
@@ -41,7 +41,7 @@ function initThreeJS() {
         }
         return; // WebGL yoksa 3D başlatmayı sonlandır (End 3D initialization if WebGL is not available)
     }
-    
+
     // Konteyneri al (Get the container element)
     var container = document.getElementById('table-3d-canvas');
     if (!container) {
@@ -49,16 +49,16 @@ function initThreeJS() {
         if (loadingScreen) loadingScreen.style.display = 'none'; // Hata durumunda yükleme ekranını gizle
         return;
     }
-    
+
     // Sahne oluştur (Create the scene)
     appState.scene = new THREE.Scene();
     appState.scene.background = new THREE.Color(0x1e1e24); // Koyu arka plan rengi (Dark background color)
-    
+
     // Kamera oluştur (Create the camera)
     appState.camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
     appState.camera.position.set(3, 2.8, 3); // Tam masa görünümü için kamera pozisyonu (Camera position for full table view)
     appState.camera.lookAt(0, 0, 0); // Kameranın masanın merkezine bakmasını sağla (Make the camera look at the center of the table)
-    
+
     // Hata yönetimi ile renderer oluştur (Create the renderer with error handling)
     try {
         appState.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // Kenar yumuşatma ve alfa (şeffaflık) etkin (Antialiasing and alpha (transparency) enabled)
@@ -72,25 +72,25 @@ function initThreeJS() {
         if (loadingScreen) loadingScreen.style.display = 'none';
         return; // Renderer başarısız olursa başlatmayı sonlandır
     }
-    
+
     // Işıkları ekle (Add lights to the scene)
     addLights();
-    
+
     // Kontrolleri başlat (Initialize controls)
     appState.controls = window.ControlsModule.init(appState.camera, appState.renderer);
-    
+
     // Yükleme animasyonunu göster (Show loading animation for the model)
     var modelLoadingIndicator = document.querySelector('.model-loading');
     if (modelLoadingIndicator) {
         modelLoadingIndicator.classList.add('active');
     }
-    
+
     // Varsayılan masa modelini oluştur (Create the default table model)
     updateTableModel(); // Bu fonksiyon içinde model yükleme göstergesi yönetilecek
-    
+
     // Animasyon döngüsünü başlat (Start the animation loop)
     animate();
-    
+
     // Pencere yeniden boyutlandırmayı işle (Handle window resize events)
     window.addEventListener('resize', onWindowResize, false);
 }
@@ -103,25 +103,25 @@ function addLights() {
     if (!appState.scene) return;
 
     // Ortam ışığı (Ambient light for overall illumination)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); 
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     appState.scene.add(ambientLight);
-    
+
     // Ana yönlü ışık (Main directional light for shadows and highlights)
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0); 
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(5, 10, 7.5); // Işık pozisyonu (Light position)
     directionalLight.castShadow = true; // Bu ışığın gölge oluşturmasını sağla (Enable shadow casting for this light)
     directionalLight.shadow.mapSize.width = 2048; // Gölge haritası çözünürlüğü (Shadow map resolution for better quality)
     directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5; // Gölge kamerası için yakın kırpma düzlemi (Near clipping plane for shadow camera)   
-    directionalLight.shadow.camera.far = 50; // Gölge kamerası için uzak kırpma düzlemi (Far clipping plane for shadow camera)    
+    directionalLight.shadow.camera.near = 0.5; // Gölge kamerası için yakın kırpma düzlemi (Near clipping plane for shadow camera)
+    directionalLight.shadow.camera.far = 50; // Gölge kamerası için uzak kırpma düzlemi (Far clipping plane for shadow camera)
     directionalLight.shadow.bias = -0.0005; // Gölge artefaktlarını (shadow acne) azaltmak için bias ayarı (Bias setting to reduce shadow artifacts)
     appState.scene.add(directionalLight);
 
     // Dolgu ışığı (Fill light to soften shadows from the opposite side)
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.5); 
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
     fillLight.position.set(-5, 5, -7.5);
     appState.scene.add(fillLight);
-    
+
     // Ön ışık (Front light to better illuminate the front of the table)
     const frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
     frontLight.position.set(0, 3, 5);
@@ -158,7 +158,7 @@ function onWindowResize() {
         // Kamera en boy oranını güncelle (Update camera aspect ratio)
         appState.camera.aspect = container.clientWidth / container.clientHeight;
         appState.camera.updateProjectionMatrix(); // Kamera projeksiyon matrisini güncelle (Update camera projection matrix)
-        
+
         // Renderer boyutunu güncelle (Update renderer size)
         appState.renderer.setSize(container.clientWidth, container.clientHeight);
 
@@ -191,9 +191,9 @@ function updateTableModel() {
         edgeStyle: appState.edgeStyle,
         legStyle: appState.legStyle
     };
-    
-    console.log("Masa modeli güncelleniyor, malzeme:", appState.currentMaterial);
-    
+
+    console.log("Masa modeli güncelleniyor, malzeme:", appState.currentMaterial, "Ayak Stili:", appState.legStyle);
+
     // Mevcut yapılandırma ile masa oluştur (Create table with current configuration)
     if (window.TableModelModule && appState.scene) {
         try {
@@ -202,12 +202,6 @@ function updateTableModel() {
                 const tableGroup = window.TableModelModule.createTable(config, appState.scene);
                 // Model başlığını güncelle (Update model header)
                 window.TableModelModule.updateModelHeader(appState.currentMaterial, appState.edgeStyle);
-                
-                // Model yüklendikten sonra yükleme göstergesini gizle
-                // createTable fonksiyonu içinde de gizleme mantığı var, tutarlılık sağlanmalı.
-                // if (modelLoadingIndicator) {
-                //     modelLoadingIndicator.classList.remove('active');
-                // }
 
                 // TANILAYICI GÜNLÜK: Model oluşturulduktan sonra doku kontrolü
                 setTimeout(function() {
@@ -244,7 +238,7 @@ function updateTableModel() {
             }
         }
     }
-    
+
     // Boyut etiketini güncelle (Update dimensions label)
     if (window.UtilsModule) {
         window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
@@ -265,7 +259,7 @@ function initEventListeners() {
             });
             // Yeni öğeyi seç (Select the new item)
             item.classList.add('selected');
-            
+
             // Malzeme türünü al (Get material type from class)
             var classes = item.classList;
             for (const className of classes) {
@@ -279,22 +273,22 @@ function initEventListeners() {
             if (window.UtilsModule) window.UtilsModule.updatePricing();
         });
     });
-    
+
     // Boyut kaydırıcıları (Dimension sliders)
     document.querySelectorAll('input[type="range"]').forEach(function(slider) {
         slider.addEventListener('input', function() {
             var dimension = slider.dataset.dimension;
             var value = parseFloat(slider.value);
             var valueDisplay = slider.closest('.dimension-row').querySelector('.dimension-value');
-            
+
             if (valueDisplay) { // Değer gösterge elemanının varlığını kontrol et
                  if (dimension === 'thickness' && value < 1) { // Kalınlık için özel gösterim (mm)
-                    valueDisplay.textContent = (value * 10).toFixed(0) + ' mm'; 
+                    valueDisplay.textContent = (value * 10).toFixed(0) + ' mm';
                 } else {
                     valueDisplay.textContent = value.toFixed(0) + ' cm'; // Diğer boyutlar için cm
                 }
             }
-            
+
             // Uygulama durumundaki boyutu güncelle (Update dimension in app state)
             switch(dimension) {
                 case 'width': appState.tableWidth = value; break;
@@ -306,7 +300,7 @@ function initEventListeners() {
             if (window.UtilsModule) window.UtilsModule.updatePricing();
         });
     });
-    
+
     // Stil seçenekleri (Edge and Leg style options)
     document.querySelectorAll('.style-option').forEach(function(option) {
         option.addEventListener('click', function() {
@@ -317,7 +311,7 @@ function initEventListeners() {
                 });
             }
             option.classList.add('selected'); // Tıklananı seç
-            
+
             // Uygulama durumundaki stili güncelle
             if (option.hasAttribute('data-edge')) {
                 appState.edgeStyle = option.dataset.edge;
@@ -328,7 +322,7 @@ function initEventListeners() {
             if (window.UtilsModule) window.UtilsModule.updatePricing();
         });
     });
-    
+
     // Özellikler onay kutuları (Features checkboxes)
     document.querySelectorAll('.feature-checkbox').forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
@@ -369,7 +363,7 @@ function initEventListeners() {
             // Mesajı göster (Display the message)
             let featureText = selectedConfiguration.features.length > 0 ? ` Ek Özellikler: ${selectedConfiguration.features.join(', ')}.` : '';
             orderMessageDiv.textContent = `Siparişiniz alındı! ${totalPrice} tutarındaki ${selectedConfiguration.material} masanız (${selectedConfiguration.width}x${selectedConfiguration.length}cm, ${selectedConfiguration.edgeStyle} kenar, ${selectedConfiguration.legStyle} ayak)${featureText} Yakında hazırlanacaktır.`;
-            
+
             console.log("Sipariş Tamamlandı:", selectedConfiguration);
             console.log("Toplam Fiyat:", totalPrice);
 
@@ -387,7 +381,7 @@ function initEventListeners() {
  */
 document.addEventListener('DOMContentLoaded', function() {
     var loadingScreen = document.querySelector('.loading-screen');
-    
+
     // Modüllerin yüklenip yüklenmediğini kontrol et (Check if modules are loaded)
     if (!window.CompatibilityModule || !window.MaterialsModule || !window.TableModelModule || !window.ControlsModule || !window.UtilsModule) {
         console.error("Bir veya daha fazla kritik modül yüklenemedi. Uygulama başlatılamıyor.");
@@ -396,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (body) body.innerHTML = "<div style='text-align:center; padding: 20px; font-family: sans-serif; color: white; background-color: #121212; height: 100vh; display: flex; justify-content: center; align-items: center;'>Uygulama başlatılırken kritik bir sorun oluştu. Lütfen geliştirici konsolunu kontrol edin.</div>";
         return;
     }
-    
+
     // UI elemanları için yükleme süresini simüle et (Simulate loading time for UI elements)
     // Bu, initThreeJS içindeki WebGL kontrolünden sonra daha mantıklı olabilir.
     if (loadingScreen) { // WebGL kontrolünden bağımsız olarak yükleme ekranını yönet
@@ -410,11 +404,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Three.js sahnesini başlat (Initialize Three.js scene)
     // initThreeJS kendi içinde WebGL kontrolünü ve ilgili yükleme ekranı yönetimini yapacak.
-    initThreeJS(); 
-    
+    initThreeJS();
+
     // Tüm olay dinleyicilerini başlat (Initialize all event listeners)
     initEventListeners();
-    
+
     // Kaydırma ortaya çıkarma animasyonlarını ve fiyatlandırmayı başlat (Initialize scroll reveal animations and pricing)
     window.UtilsModule.initScrollReveal();
     window.UtilsModule.updatePricing();

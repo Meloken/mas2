@@ -5,16 +5,16 @@
 :root {
   --bg-primary: #121212;
   --bg-secondary: #1e1e24;
-  --accent-primary: #6e56cf;
-  --accent-secondary: #c084fc;
+  --accent-primary: #6e56cf; /* Ana vurgu rengi - Mor */
+  --accent-secondary: #c084fc; /* İkincil vurgu rengi - Açık Mor/Pembe */
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
-  --success: #4ade80;
-  --warning: #facc15;
-  --error: #f87171;
-  --card-bg: rgba(30, 30, 36, 0.7);
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --success: #4ade80; /* Yeşil */
+  --warning: #facc15; /* Sarı */
+  --error: #f87171;   /* Kırmızı */
+  --card-bg: rgba(30, 30, 36, 0.7); /* Kart arka planı (hafif şeffaf) */
+  --glass-bg: rgba(255, 255, 255, 0.05); /* Cam efekti için arka plan */
+  --glass-border: rgba(255, 255, 255, 0.1); /* Cam efekti için kenarlık */
   --gradient-1: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
 }
 
@@ -29,10 +29,10 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
-  overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(110, 86, 207, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(192, 132, 252, 0.1) 0%, transparent 50%);
+  overflow-x: hidden; /* Yatay kaydırmayı engelle */
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(110, 86, 207, 0.08) 0%, transparent 50%), /* Sol üstte hafif mor */
+    radial-gradient(circle at 80% 80%, rgba(192, 132, 252, 0.08) 0%, transparent 50%); /* Sağ altta hafif açık mor */
 }
 
 /* LOADING ANIMATION */
@@ -52,7 +52,7 @@ body {
 
 .loading-screen.hidden {
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none; /* Gizliyken tıklamaları engelle */
 }
 
 .loading-spinner {
@@ -67,13 +67,14 @@ body {
   height: 20px;
   background: var(--accent-primary);
   animation: cube-fold 2s infinite ease-in-out;
+  border-radius: 3px; /* Küplere hafif yuvarlaklık */
 }
 
 .loading-cube:nth-child(1) { top: 0; left: 0; animation-delay: 0s; }
 .loading-cube:nth-child(2) { top: 0; left: 30px; animation-delay: 0.1s; }
 .loading-cube:nth-child(3) { top: 0; left: 60px; animation-delay: 0.2s; }
 .loading-cube:nth-child(4) { top: 30px; left: 0; animation-delay: 0.3s; }
-.loading-cube:nth-child(5) { top: 30px; left: 30px; animation-delay: 0.4s; background: var(--accent-secondary); }
+.loading-cube:nth-child(5) { top: 30px; left: 30px; animation-delay: 0.4s; background: var(--accent-secondary); } /* Ortadaki farklı renk */
 .loading-cube:nth-child(6) { top: 30px; left: 60px; animation-delay: 0.5s; }
 .loading-cube:nth-child(7) { top: 60px; left: 0; animation-delay: 0.6s; }
 .loading-cube:nth-child(8) { top: 60px; left: 30px; animation-delay: 0.7s; }
@@ -88,7 +89,7 @@ body {
 
 /* HEADER */
 .header {
-  position: relative;
+  position: relative; /* ::before için */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -96,23 +97,23 @@ body {
   align-items: center;
   text-align: center;
   padding: 2rem;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(20,20,30,0.9) 100%);
+  overflow: hidden; /* ::before taşmasını engelle */
+  background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(20,20,30,0.9) 100%); /* Hafif transparan gradient */
 }
 
-.header::before {
+.header::before { /* Arka plan resmi için pseudo-element */
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('https://cdn.pixabay.com/photo/2015/12/29/14/51/mountains-1112911_1280.jpg');
+  background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'); /* Örnek bir dağ resmi */
   background-size: cover;
   background-position: center;
-  z-index: -1;
-  opacity: 0.2;
-  filter: blur(5px);
+  z-index: -1; /* Başlık içeriğinin altında kalsın */
+  opacity: 0.15; /* Resmi soluklaştır */
+  filter: blur(3px); /* Resmi hafif bulanıklaştır */
 }
 
 .header h1 {
@@ -121,6 +122,7 @@ body {
   margin-bottom: 1rem;
   background: var(--gradient-1);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: fadeSlideUp 0.8s ease-out forwards;
 }
@@ -131,7 +133,7 @@ body {
   max-width: 600px;
   color: var(--text-secondary);
   animation: fadeSlideUp 0.8s ease-out 0.2s forwards;
-  opacity: 0;
+  opacity: 0; /* Animasyon için başlangıçta gizli */
 }
 
 .btn-primary {
@@ -141,16 +143,16 @@ body {
   color: white;
   font-weight: 600;
   text-decoration: none;
-  border-radius: 50px;
+  border-radius: 50px; /* Tamamen yuvarlak kenarlar */
   box-shadow: 0 4px 20px rgba(110, 86, 207, 0.5);
   transition: all 0.3s ease;
   animation: fadeSlideUp 0.8s ease-out 0.4s forwards;
-  opacity: 0;
-  position: relative;
-  overflow: hidden;
+  opacity: 0; /* Animasyon için başlangıçta gizli */
+  position: relative; /* Parlama efekti için */
+  overflow: hidden;   /* Parlama efekti için */
 }
 
-.btn-primary::before {
+.btn-primary::before { /* Hover parlama efekti */
   content: "";
   position: absolute;
   top: 0;
@@ -162,11 +164,45 @@ body {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
+  transform: translateY(-3px); /* Hafif yukarı kalkma efekti */
   box-shadow: 0 6px 25px rgba(110, 86, 207, 0.6);
 }
 
-.btn-primary:hover::before { left: 100%; }
+.btn-primary:hover::before { left: 100%; } /* Parlama efektini çalıştır */
+
+/* GÜNCELLENMİŞ SOSYAL İKON STİLLERİ */
+.social-icons {
+    margin-top: 2.5rem; /* Butonla arasına boşluk */
+    display: flex;
+    gap: 1rem; /* İkonlar arası boşluk azaltıldı */
+    animation: fadeSlideUp 0.8s ease-out 0.6s forwards; /* Animasyon */
+    opacity: 0; /* Animasyon için başlangıçta gizli */
+}
+
+.social-icons a {
+    display: inline-flex; /* İkonu ortalamak için */
+    justify-content: center;
+    align-items: center;
+    width: 50px; /* Buton genişliği */
+    height: 50px; /* Buton yüksekliği */
+    background: rgba(255, 255, 255, 0.05); /* Hafif cam efekti arka planı */
+    border: 1px solid var(--glass-border); /* Cam efekti kenarlığı */
+    color: var(--text-secondary);
+    font-size: 1.5rem; /* İkon boyutu biraz küçültüldü */
+    border-radius: 50%; /* Tamamen yuvarlak butonlar */
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Hafif gölge */
+}
+
+.social-icons a:hover {
+    background: var(--gradient-1); /* Hover'da gradient arka plan */
+    color: white; /* Hover'da ikon rengi */
+    transform: translateY(-3px) scale(1.05); /* Hafif yukarı ve büyüme */
+    box-shadow: 0 4px 15px rgba(110, 86, 207, 0.4); /* Hover'da daha belirgin gölge */
+}
+/* SOSYAL İKON STİLLERİ SONU */
+
 
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(30px); }
@@ -176,28 +212,30 @@ body {
 /* CONTAINER LAYOUT */
 .container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* Önizleme ve özelleştirme panelleri için iki sütun */
   gap: 2rem;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1400px; /* Maksimum genişlik */
+  margin: 0 auto; /* Ortala */
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1024px) { /* Tablet ve altı için tek sütun */
   .container { grid-template-columns: 1fr; }
   .header h1 { font-size: 3rem; }
+  .social-icons { margin-top: 2rem; gap: 0.8rem; } /* İkon arası boşluk ayarlandı */
+  .social-icons a { font-size: 1.4rem; width: 45px; height: 45px; } /* İkon boyutu ayarlandı */
 }
 
 /* PREVIEW CONTAINER */
 .preview-container {
   position: relative;
-  min-height: 650px;
+  min-height: 650px; /* Minimum yükseklik */
   background: var(--bg-secondary);
-  border-radius: 20px;
+  border-radius: 20px; /* Yuvarlak kenarlar */
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px); /* Arka planı bulanıklaştır (destekleyen tarayıcılarda) */
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  background: var(--glass-bg); /* Cam efekti */
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
@@ -216,7 +254,7 @@ body {
   align-items: center;
   padding: 1.2rem 1.5rem;
   border-bottom: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.2); /* Hafif koyu başlık arka planı */
 }
 
 .preview-header h3 {
@@ -250,26 +288,26 @@ body {
 }
 
 .table-3d-container {
-  position: relative;
-  flex: 1;
+  position: relative; /* Canvas overlay için */
+  flex: 1; /* Kalan alanı kapla */
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(145deg, rgba(25, 25, 30, 0.8), rgba(15, 15, 18, 0.9));
-  overflow: hidden;
+  background: linear-gradient(145deg, rgba(25, 25, 30, 0.8), rgba(15, 15, 18, 0.9)); /* Koyu gradient arka plan */
+  overflow: hidden; /* Canvas taşmasını engelle */
 }
 
-#table-3d-canvas {
+#table-3d-canvas { /* Three.js canvas'ının kendisi */
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 1; /* Kontrol panelinin altında */
 }
 
-.canvas-overlay {
+.canvas-overlay { /* Model yükleme göstergesi için */
   position: absolute;
   top: 0;
   left: 0;
@@ -278,8 +316,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 5; 
-  pointer-events: none; 
+  z-index: 5; /* Canvas'ın üzerinde, kontrol panelinin altında */
+  pointer-events: none; /* Yükleme bittiğinde tıklamaları engellemesin */
 }
 
 .model-loading {
@@ -287,22 +325,22 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  opacity: 0;
+  opacity: 0; /* Başlangıçta gizli */
   transition: opacity 0.3s ease;
-  background-color: rgba(18, 18, 18, 0.85); 
+  background-color: rgba(18, 18, 18, 0.85);
   padding: 1.5rem 2rem;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 10; 
-  pointer-events: auto; 
+  z-index: 10; /* Diğer overlay elemanlarının üzerinde */
+  pointer-events: auto; /* Yüklenirken tıklanabilir (isteğe bağlı) */
 }
 
-.model-loading.active { opacity: 1; }
+.model-loading.active { opacity: 1; } /* Görünür yap */
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(110, 86, 207, 0.2);
+  border: 3px solid rgba(110, 86, 207, 0.2); /* Spinner rengi */
   border-top: 3px solid var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -316,7 +354,7 @@ body {
 .control-panel {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.2); /* Kontrol paneli arka planı */
 }
 
 .control-row {
@@ -325,26 +363,30 @@ body {
   align-items: center;
   margin-bottom: 1rem;
 }
+.control-row:last-child {
+  margin-bottom: 0;
+}
+
 
 .control-group, .view-group {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.5rem; /* Butonlar arası boşluk */
 }
 
 .control-divider {
   width: 1px;
   height: 24px;
   background: var(--glass-border);
-  margin: 0 0.5rem;
+  margin: 0 0.5rem; /* Ayırıcı etrafındaki boşluk */
 }
 
 .control-btn, .view-btn, .zoom-btn {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 8px; /* Buton kenar yuvarlaklığı */
   border: none;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.03); /* Hafif cam efekti */
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
   cursor: pointer;
@@ -352,22 +394,22 @@ body {
   justify-content: center;
   align-items: center;
   transition: all 0.2s ease;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px); /* Butonlara da cam efekti */
 }
 
-.control-btn.primary {
+.control-btn.primary { /* Reset butonu gibi ana kontrol butonları */
   background: rgba(110, 86, 207, 0.2);
   border-color: rgba(110, 86, 207, 0.4);
   color: var(--accent-secondary);
 }
 
 .control-btn:hover, .view-btn:hover, .zoom-btn:hover {
-  background: rgba(110, 86, 207, 0.3);
+  background: rgba(110, 86, 207, 0.3); /* Hover rengi */
   border-color: var(--accent-primary);
-  transform: translateY(-2px);
+  transform: translateY(-2px); /* Hafif yukarı kalkma */
 }
 
-.view-btn.active {
+.view-btn.active { /* Aktif görünüm butonu */
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   color: white;
@@ -380,7 +422,7 @@ body {
 }
 
 .zoom-slider-container {
-  flex: 1;
+  flex: 1; /* Kaydırıcı alanı kaplasın */
   padding: 0 0.5rem;
 }
 
@@ -389,7 +431,7 @@ body {
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: var(--glass-border);
+  background: var(--glass-border); /* Kaydırıcı yolu */
   outline: none;
   border-radius: 2px;
 }
@@ -400,13 +442,13 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--accent-primary);
+  background: var(--accent-primary); /* Kaydırıcı topuzu */
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-#zoom-slider::-moz-range-thumb {
+#zoom-slider::-moz-range-thumb { /* Firefox için */
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -420,7 +462,7 @@ body {
 .customization-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.5rem; /* Bölümler arası boşluk */
 }
 
 .panel-section {
@@ -433,7 +475,7 @@ body {
 }
 
 .panel-section:hover {
-  transform: translateY(-5px);
+  transform: translateY(-5px); /* Hover'da hafif yukarı */
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
@@ -443,32 +485,30 @@ body {
   margin-bottom: 1.2rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.5rem; /* İkon ve başlık arası boşluk */
   color: var(--text-primary);
 }
 
-.panel-section-title i { color: var(--accent-primary); }
+.panel-section-title i { color: var(--accent-primary); } /* İkon rengi */
 
 /* MATERIAL GRID */
 .material-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Esnek grid */
   gap: 1rem;
 }
 
 .material-item {
-  aspect-ratio: 1;
+  aspect-ratio: 1; /* Kare görünüm */
   border-radius: 10px;
   position: relative;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid transparent; /* Seçili olmayanlar için transparan kenarlık */
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  background-size: cover; 
-  background-position: center; 
-  /* Doku resimleri için bir overlay eklenebilir, böylece renk daha iyi karışır */
-  /* Örneğin: background-blend-mode: multiply; (ama bu durumda renkler daha koyu olur) */
+  background-size: cover; /* Doku resimleri için */
+  background-position: center;
 }
 
 .material-item::before { /* Renk ve doku karışımı için bir overlay */
@@ -481,20 +521,28 @@ body {
     background-color: inherit; /* Ana rengi alır */
     opacity: 0.3; /* Dokuyla ne kadar karışacağını ayarlar */
     z-index: 1;
+    transition: opacity 0.3s ease;
+}
+.material-item:hover::before {
+    opacity: 0.1; /* Hover'da doku daha belirgin */
 }
 
 
 .material-item:hover {
-  transform: scale(1.05);
+  transform: scale(1.05); /* Hover'da hafif büyüme */
   border-color: rgba(110, 86, 207, 0.3);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .material-item.selected {
-  border-color: var(--accent-primary);
+  border-color: var(--accent-primary); /* Seçili malzeme kenarlığı */
   box-shadow: 0 0 20px rgba(110, 86, 207, 0.8);
   transform: scale(1.05);
 }
+.material-item.selected::before {
+    opacity: 0.1; /* Seçiliyken de doku daha belirgin */
+}
+
 
 .material-item span {
   position: absolute;
@@ -502,13 +550,13 @@ body {
   left: 0;
   width: 100%;
   padding: 0.3rem;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7); /* Yazı arka planı */
   color: white;
   text-align: center;
   font-size: 0.7rem;
-  font-weight: 500; /* Biraz daha belirgin */
-  backdrop-filter: blur(5px);
-  z-index: 2; 
+  font-weight: 500;
+  backdrop-filter: blur(5px); /* Yazı arka planına cam efekti */
+  z-index: 2; /* Overlay'in üzerinde */
 }
 
 /* Malzeme arka plan renkleri - Resimdeki renklere göre güncellendi */
@@ -530,7 +578,7 @@ body {
 
 .dimension-row {
   display: grid;
-  grid-template-columns: 100px 1fr 70px; 
+  grid-template-columns: 100px 1fr 70px; /* Etiket, kaydırıcı, değer */
   align-items: center;
   gap: 1rem;
 }
@@ -574,19 +622,19 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]::-webkit-slider-thumb:hover,
 input[type="range"]:active::-webkit-slider-thumb {
-  background: var(--accent-secondary);
-  transform: scale(1.2);
+  background: var(--accent-secondary); /* Aktif/hover topuz rengi */
+  transform: scale(1.2); /* Hafif büyüme */
 }
 
 /* STYLE OPTIONS */
 .style-option-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Esnek stil seçenekleri */
   gap: 1rem;
 }
 
 .style-option {
-  background: var(--bg-primary);
+  background: var(--bg-primary); /* Stil seçenekleri arka planı */
   border: 1px solid var(--glass-border);
   padding: 0.8rem;
   border-radius: 10px;
@@ -601,7 +649,7 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 .style-option.selected {
-  background: linear-gradient(135deg, rgba(110, 86, 207, 0.2), rgba(192, 132, 252, 0.2));
+  background: linear-gradient(135deg, rgba(110, 86, 207, 0.2), rgba(192, 132, 252, 0.2)); /* Seçili stil arka planı */
   border-color: var(--accent-primary);
   color: var(--accent-secondary);
 }
@@ -614,12 +662,12 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 .feature-item { display: flex; align-items: center; }
-.feature-checkbox { display: none; }
+.feature-checkbox { display: none; } /* Gerçek checkbox'ı gizle */
 
 .feature-label {
   display: flex;
   justify-content: space-between;
-  align-items: center; 
+  align-items: center;
   width: 100%;
   padding: 0.8rem 1rem;
   border-radius: 10px;
@@ -627,11 +675,11 @@ input[type="range"]:active::-webkit-slider-thumb {
   border: 1px solid var(--glass-border);
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  padding-left: 2.8rem; 
+  position: relative; /* Pseudo-element için */
+  padding-left: 2.8rem; /* Checkbox için yer bırak */
 }
 
-.feature-label::before { 
+.feature-label::before { /* Özel checkbox görünümü */
   content: "";
   position: absolute;
   left: 1rem;
@@ -645,20 +693,20 @@ input[type="range"]:active::-webkit-slider-thumb {
   transition: all 0.2s ease;
 }
 
-.feature-checkbox:checked + .feature-label {
+.feature-checkbox:checked + .feature-label { /* Seçili checkbox */
   background: linear-gradient(135deg, rgba(110, 86, 207, 0.1), rgba(192, 132, 252, 0.1));
   border-color: var(--accent-primary);
 }
 
-.feature-checkbox:checked + .feature-label::before {
+.feature-checkbox:checked + .feature-label::before { /* Seçili checkbox içi */
   background-color: var(--accent-primary);
   border-color: var(--accent-primary);
 }
 
-.feature-checkbox:checked + .feature-label::after { 
+.feature-checkbox:checked + .feature-label::after { /* Seçili checkbox tik işareti */
   content: "✓";
   position: absolute;
-  left: 1.35rem; 
+  left: 1.35rem; /* Tik işaretinin konumu */
   top: 50%;
   transform: translateY(-50%);
   color: white;
@@ -693,7 +741,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   font-weight: 600;
   padding-top: 1rem;
   border-bottom: none;
-  color: var(--text-primary); 
+  color: var(--text-primary);
 }
 
 .price-value { font-weight: 600; }
@@ -705,7 +753,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   border: none;
   border-radius: 10px;
   color: white;
-  font-size: 1rem; 
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -717,14 +765,14 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 /* ANIMATION CLASSES */
-.animate-in {
+.animate-in { /* Sayfa yüklendiğinde içeriğin animasyonla gelmesi */
   opacity: 0;
   transform: translateY(30px);
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-.animate-in:nth-child(1) { animation-delay: 0.6s; }
-.animate-in:nth-child(2) { animation-delay: 0.8s; }
+.animate-in:nth-child(1) { animation-delay: 0.6s; } /* Önizleme paneli biraz daha geç */
+.animate-in:nth-child(2) { animation-delay: 0.8s; } /* Özelleştirme paneli daha da geç */
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(30px); }
@@ -732,13 +780,13 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 /* SCROLL ANIMATIONS */
-.reveal {
+.reveal { /* Kaydırma ile ortaya çıkan bölümler */
   opacity: 0;
   transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Yumuşak bir efekt */
 }
 
-.reveal.active {
+.reveal.active { /* Görünür olduğunda */
   opacity: 1;
   transform: translateY(0);
 }
@@ -753,9 +801,9 @@ input[type="range"]:active::-webkit-slider-thumb {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(30, 30, 36, 0.95); 
-    z-index: 100; 
-    padding: 1rem; 
+    background: rgba(30, 30, 36, 0.95);
+    z-index: 100; /* Diğer her şeyin üzerinde */
+    padding: 1rem; /* Küçük ekranlarda kenar boşluğu */
 }
 .webgl-warning-content {
     background: var(--bg-primary);
@@ -763,12 +811,12 @@ input[type="range"]:active::-webkit-slider-thumb {
     border-radius: 10px;
     padding: 2rem;
     text-align: center;
-    max-width: 90%;
+    max-width: 90%; /* Küçük ekranlarda taşmayı engelle */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 .webgl-warning-content i {
-    font-size: 2.5rem; 
-    color: var(--warning); 
+    font-size: 2.5rem;
+    color: var(--warning); /* Uyarı rengi */
     margin-bottom: 1rem;
 }
 .webgl-warning-content h3 {
@@ -786,11 +834,13 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 /* RESPONSIVE STYLES */
-@media (max-width: 768px) {
+@media (max-width: 768px) { /* Tabletler için */
   .container { padding: 1rem; gap: 1.5rem; }
   .header h1 { font-size: 2.5rem; }
   .header p { font-size: 1.2rem; }
-  .style-option-grid { grid-template-columns: repeat(2, 1fr); }
+  .social-icons { margin-top: 1.5rem; gap: 0.8rem; } /* İkon arası boşluk ayarlandı */
+  .social-icons a { font-size: 1.4rem; width: 45px; height: 45px;} /* İkon boyutu ayarlandı */
+  .style-option-grid { grid-template-columns: repeat(2, 1fr); } /* Stil seçenekleri 2 sütun */
   .preview-container, .preview-window { min-height: 500px; }
   .control-row { flex-direction: column; gap: 1rem; }
   .control-group, .view-group { width: 100%; justify-content: space-around; }
@@ -799,19 +849,21 @@ input[type="range"]:active::-webkit-slider-thumb {
   .dimension-row { grid-template-columns: 80px 1fr 60px; }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 480px) { /* Mobil cihazlar için */
   .header h1 { font-size: 2rem; }
   .header p { font-size: 1rem; }
-  .material-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
-  .dimension-row { grid-template-columns: 1fr; gap: 0.5rem; }
+  .social-icons { margin-top: 1.2rem; gap: 0.6rem; } /* İkon arası boşluk ayarlandı */
+  .social-icons a { font-size: 1.3rem; width: 40px; height: 40px; } /* İkon boyutu ayarlandı */
+  .material-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; } /* Malzemeler 2 sütun */
+  .dimension-row { grid-template-columns: 1fr; gap: 0.5rem; } /* Boyutlar tek sütun */
   .dimension-label, .dimension-value { text-align: left; }
   .dimension-value { margin-top: 0.2rem; font-size: 0.9rem; }
   .table-3d-container { min-height: 300px; }
   .zoom-control { flex-wrap: wrap; justify-content: center; }
-  .zoom-slider-container { order: 3; width: 100%; margin-top: 0.5rem; }
+  .zoom-slider-container { order: 3; width: 100%; margin-top: 0.5rem; } /* Zoom kaydırıcısı alta */
   .panel-section-title { font-size: 1rem; }
   .control-btn, .view-btn, .zoom-btn { width: 36px; height: 36px; }
-  .style-option-grid { grid-template-columns: 1fr; }
+  .style-option-grid { grid-template-columns: 1fr; } /* Stil seçenekleri tek sütun */
   .feature-label { padding-left: 2.5rem; font-size: 0.9rem; }
   .feature-label::before { width: 16px; height: 16px; }
   .feature-checkbox:checked + .feature-label::after { left: 1.25rem; }
