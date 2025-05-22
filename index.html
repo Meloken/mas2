@@ -10,7 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
-    <!-- Loading Animation -->
     <div class="loading-screen">
         <div class="loading-spinner">
             <div class="loading-cube"></div>
@@ -47,7 +46,7 @@
                             <div class="spinner"></div>
                             <span>Model yükleniyor...</span>
                         </div>
-                    </div>
+                         </div>
                 </div>
                 
                 <div class="control-panel">
@@ -166,8 +165,6 @@
                 </div>
             </div>
             
-            <!-- Removed the table shape section as we only have rectangular tables now -->
-            
             <div class="panel-section reveal">
                 <div class="panel-section-title">
                     <i class="fas fa-border-style"></i>
@@ -254,17 +251,17 @@
                         <span class="price-value">1500 ₺</span>
                     </div>
                 </div>
-                <button class="order-btn">Siparişi Tamamla</button>
+                <button class="order-btn" id="completeOrderBtn">Siparişi Tamamla</button>
+                <div id="orderMessage" class="order-message" style="margin-top: 1rem; text-align: center; color: var(--accent-secondary); font-weight: 500;"></div>
             </div>
         </div>
     </main>
 
-    <!-- Modular JS -->
     <script src="js/modules/compatibility.js"></script>
     <script src="js/modules/materials.js"></script>
     <script src="js/modules/tableModel.js"></script>
     <script src="js/modules/controls.js"></script>
     <script src="js/modules/utils.js"></script>
     <script src="js/main.js"></script>
-</body>
+    </body>
 </html>

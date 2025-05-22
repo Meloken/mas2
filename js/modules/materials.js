@@ -1,178 +1,148 @@
 /**
  * @file materials.js
- * @description Materials management module for the Modern Table Designer application
- * Handles material properties, textures and colors
+ * @description Modern Masa Tasarımcısı uygulaması için malzeme yönetimi modülü
+ * Malzeme özelliklerini, dokularını ve renklerini yönetir
  */
 
-/**
- * The collection of available material properties and textures
- * @type {Object}
- */
+// Uygulama durumu global olarak erişilebilir olduğu varsayılıyor (appState.renderer.capabilities.getMaxAnisotropy() için)
+// var appState = window.appState; // Eğer main.js'de global appState varsa
+
 const MATERIALS = {
     'ceviz': {
         name: 'Ceviz',
-        color: 0xD7954B,
-        textureUrl: 'https://cdn.pixabay.com/photo/2017/02/07/09/02/wood-2045379_640.jpg'
+        color: 0x6A4F3B, // Daha koyu ve zengin bir kahverengi (Resimdeki gibi)
+        textureUrl: 'assets/textures/ceviz_wood_texture_dark.jpg' // Örnek yerel doku yolu
     },
     'mogano': {
         name: 'Maun',
-        color: 0x8B4513, // Dark reddish-brown
-        textureUrl: 'https://cdn.pixabay.com/photo/2016/11/21/17/57/wood-1846849_640.jpg'
+        color: 0x8C4A3C, // Kırmızımsı kahverengi, biraz daha canlı (Resimdeki gibi)
+        textureUrl: 'assets/textures/maun_wood_texture_reddish.jpg' 
     },
     'mese': {
         name: 'Meşe',
-        color: 0xDEB887, // Burlywood
-        textureUrl: 'https://cdn.pixabay.com/photo/2016/11/23/15/04/wood-1853403_640.jpg'
+        color: 0xC8B59A, // Açık, hafif sarımsı ve desatüre kahverengi (Resimdeki gibi)
+        textureUrl: 'assets/textures/mese_wood_texture_light.jpg'
     },
     'huş': {
-        name: 'Huş',
-        color: 0xF5DEB3, // Wheat
-        textureUrl: 'https://cdn.pixabay.com/photo/2017/02/14/09/02/wood-2065366_640.jpg'
+        name: 'Huş', // Resimde daha koyu ve grimsi bir ton var
+        color: 0x9A8C78, // Daha koyu, grimsi kahverengi (Resimdeki gibi)
+        textureUrl: 'assets/textures/hus_wood_texture_greyish.jpg'
     },
     'ebene': {
         name: 'Abanoz',
-        color: 0x3D2B1F, // Very dark brown
-        textureUrl: 'https://cdn.pixabay.com/photo/2016/11/21/18/14/wall-1846965_640.jpg'
+        color: 0x2A2B27, // Çok koyu, siyaha yakın, hafif yeşilimsi/kahverengi (Resimdeki gibi)
+        textureUrl: 'assets/textures/abanoz_wood_texture_dark.jpg'
     },
-    'geyik': {
-        name: 'Dişbudak',
-        color: 0xc4ac90, // Light brown
-        textureUrl: 'https://cdn.pixabay.com/photo/2017/02/07/09/02/wood-2045380_640.jpg'
+    'geyik': { 
+        name: 'Dişbudak', 
+        color: 0x7C6F62, // Orta-koyu, grimsi kahverengi (Resimdeki gibi)
+        textureUrl: 'assets/textures/disbudak_wood_texture_dark_grey.jpg'
     }
 };
 
-/**
- * Gets the properties of a specific material
- * @param {string} materialName - The name of the material
- * @returns {Object} Object containing color and textureUrl properties
- */
 function getMaterialProperties(materialName) {
     if (MATERIALS[materialName]) {
         return MATERIALS[materialName];
     }
-    
-    // Default to ceviz if material not found
+    console.warn(`MATERIALS.JS: '${materialName}' adlı malzeme bulunamadı. Varsayılan olarak 'ceviz' kullanılıyor.`);
     return MATERIALS['ceviz'];
 }
 
-/**
- * Creates a Three.js material with appropriate texture and properties
- * @param {string} materialName - The name of the material to use
- * @param {Object} [options] - Additional material options
- * @returns {THREE.Material} The created material object
- */
 function createMaterial(materialName, options = {}) {
-    console.log("Creating material for: " + materialName);
-    
-    // Reset THREE.Cache to prevent texture caching issues
-    THREE.Cache.clear();
+    console.log(`MATERIALS.JS: Malzeme oluşturuluyor: ${materialName}`);
     
     const materialProps = getMaterialProperties(materialName);
-    console.log("Material properties:", materialProps);
-    
-    // Emphasize color differences between materials
-    const materialColor = materialProps.color;
     
     const defaults = {
-        roughness: 0.4,
-        metalness: 0.1,
-        reflectivity: 0.3,
-        clearcoat: 0.2,
-        clearcoatRoughness: 0.3
+        roughness: 0.65, // Ahşap için pürüzlülük biraz daha artırıldı
+        metalness: 0.0, 
+        reflectivity: 0.25, // Yansıtıcılık biraz daha düşük
+        clearcoat: 0.15,    
+        clearcoatRoughness: 0.35 
     };
-    
     const settings = Object.assign({}, defaults, options);
     
-    // Create material with texture if available
+    let finalMaterial;
+
     if (materialProps.textureUrl) {
-        console.log("Loading texture from URL:", materialProps.textureUrl);
+        console.log(`MATERIALS.JS: Doku yükleniyor: ${materialProps.textureUrl}`);
         
-        // Create a new texture loader each time to avoid caching issues
         const textureLoader = new THREE.TextureLoader();
-        
-        // First destroy any existing texture with same URL
-        const textureCache = THREE.Cache.get(materialProps.textureUrl);
-        if (textureCache) {
-            THREE.Cache.remove(materialProps.textureUrl);
+        try {
+            const texture = textureLoader.load(
+                materialProps.textureUrl,
+                function (loadedTexture) { 
+                    loadedTexture.needsUpdate = true; 
+                    loadedTexture.wrapS = THREE.RepeatWrapping; 
+                    loadedTexture.wrapT = THREE.RepeatWrapping; 
+                    
+                    // appState'in global olup olmadığını kontrol et
+                    let maxAnisotropy = 16; // Varsayılan değer
+                    if (typeof appState !== 'undefined' && appState.renderer && appState.renderer.capabilities) { 
+                        maxAnisotropy = appState.renderer.capabilities.getMaxAnisotropy();
+                    }
+                    loadedTexture.anisotropy = maxAnisotropy;
+                    loadedTexture.encoding = THREE.sRGBEncoding; 
+                    console.log(`MATERIALS.JS: ${materialProps.textureUrl} dokusu başarıyla yüklendi ve uygulandı. Texture object:`, loadedTexture);
+                    
+                    if (finalMaterial && finalMaterial.map !== loadedTexture) {
+                        finalMaterial.map = loadedTexture;
+                        finalMaterial.needsUpdate = true;
+                        console.log(`MATERIALS.JS: Malzeme (${materialName}) doku ile güncellendi.`);
+                    }
+                },
+                undefined, 
+                function (errorEvent) { 
+                    console.error(`MATERIALS.JS: ${materialProps.textureUrl} dokusu yüklenirken XHR HATA OLUŞTU:`, errorEvent);
+                    console.error(`MATERIALS.JS: Lütfen '${materialProps.textureUrl}' dosyasının doğru yolda ('assets/textures/' altında) ve erişilebilir olduğundan emin olun.`);
+                    if (finalMaterial) {
+                        finalMaterial.map = null; 
+                        finalMaterial.color.setHex(0xFF0000); // Kırmızı renk (hata belirtisi)
+                        finalMaterial.needsUpdate = true;
+                        console.warn(`MATERIALS.JS: Doku yükleme hatası nedeniyle ${materialName} malzemesi kırmızı olarak ayarlandı.`);
+                    }
+                }
+            );
+            
+            finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
+                map: texture, 
+                color: materialProps.color 
+            }, settings));
+            finalMaterial.name = materialName + "_Material"; 
+            console.log(`MATERIALS.JS: ${materialName} için MeshPhysicalMaterial oluşturuldu. Doku yüklenmesi bekleniyor...`);
+
+        } catch (e) {
+            console.error(`MATERIALS.JS: TextureLoader.load çağrılırken hata (bu genellikle olmaz):`, e);
+            finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
+                color: 0x00FF00, 
+            }, settings));
+            finalMaterial.name = materialName + "_ErrorMaterial";
         }
         
-        // Force bypass cache by setting needsUpdate on texture load
-        const texture = textureLoader.load(materialProps.textureUrl, function(loadedTexture) {
-            loadedTexture.needsUpdate = true;
-        });
-        
-        // Set texture wrapping and repeat
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(1, 1);
-        
-        // Create a unique material each time to avoid caching
-        const material = new THREE.MeshPhysicalMaterial(Object.assign({
-            map: texture,
+    } else {
+        console.warn(`MATERIALS.JS: ${materialName} için doku URL'si bulunamadı. Sadece renkli malzeme kullanılıyor.`);
+        finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
             color: materialProps.color
         }, settings));
-        
-        // Force the material to update
-        material.needsUpdate = true;
-        material.map.needsUpdate = true;
-        
-        // Apply material color more strongly
-        material.color.setHex(materialProps.color);
-        
-        // Increase color influence for stronger material colors
-        material.color.convertSRGBToLinear(); // Make colors more vibrant
-        
-        // Add a color tint to the texture
-        if (material.map) {
-            material.map.encoding = THREE.sRGBEncoding;
-            // Increase texture contrast
-            material.map.anisotropy = 16; // Sharper texture
-        }
-        
-        console.log("Created material with color:", 
-                    material.color.getHexString(), 
-                    "from material color:", 
-                    materialProps.color.toString(16));
-        
-        return material;
-    } 
+        finalMaterial.name = materialName + "_ColorOnlyMaterial";
+    }
     
-    // Fallback to color-only material with forced color update
-    const material = new THREE.MeshPhysicalMaterial(Object.assign({
-        color: materialProps.color
-    }, settings));
-    
-    // Force color update
-    material.color.setHex(materialProps.color);
-    material.needsUpdate = true;
-    
-    console.log("Created color-only material with color:", 
-                material.color.getHexString());
-    
-    return material;
+    finalMaterial.needsUpdate = true; 
+    return finalMaterial;
 }
 
-/**
- * Creates a standard metal material for table legs
- * @param {number} [color=0x222222] - The color of the metal
- * @returns {THREE.Material} The created metal material
- */
-function createMetalMaterial(color = 0x222222) {
-    return new THREE.MeshStandardMaterial({
+function createMetalMaterial(color = 0x333333) { 
+    const mat = new THREE.MeshStandardMaterial({
         color: color,
-        roughness: 0.5,
-        metalness: 0.8
+        roughness: 0.45, // Metal için biraz daha az pürüzlü
+        metalness: 0.85  
     });
+    mat.name = "MetalLegMaterial";
+    return mat;
 }
 
-/**
- * Gets a darker shade of a color
- * @param {number} color - The color to darken (hex number)
- * @param {number} [factor=0.8] - The darkening factor (0-1)
- * @returns {number} The darkened color
- */
+// Bu fonksiyon şu an kullanılmıyor gibi görünüyor, ancak referans olarak kalabilir.
 function getDarkerShade(color, factor = 0.8) {
-    // Convert hex to RGB, reduce brightness by factor
     const r = (color >> 16) & 255;
     const g = (color >> 8) & 255;
     const b = color & 255;
@@ -181,14 +151,12 @@ function getDarkerShade(color, factor = 0.8) {
     const darkerG = Math.floor(g * factor);
     const darkerB = Math.floor(b * factor);
     
-    // Convert back to hex
     return (darkerR << 16) | (darkerG << 8) | darkerB;
 }
 
-// Export the module's public API
 window.MaterialsModule = {
     getMaterialProperties,
     createMaterial,
     createMetalMaterial,
-    getDarkerShade
+    getDarkerShade 
 };

@@ -5,358 +5,329 @@
  */
 
 // Module state
-let tableModel = null;
-let isModelLoaded = false;
+let tableModelGroup = null; 
+let shadowPlane = null; 
+let isModelCurrentlyLoaded = false;
 
 /**
  * Creates a table model with the specified properties
- * @param {Object} config - Table configuration object
- * @param {number} config.width - Table width in cm
- * @param {number} config.length - Table length in cm
- * @param {number} config.height - Table height in cm
- * @param {number} config.thickness - Table top thickness in cm
- * @param {string} config.material - Material name
- * @param {string} config.edgeStyle - Edge style ('straight', 'beveled', or 'rounded')
- * @param {string} config.legStyle - Leg style ('standard', 'tapered', or 'x-style')
- * @param {THREE.Scene} scene - The Three.js scene to add the model to
- * @returns {THREE.Group} The created table model
  */
 function createTable(config, scene) {
-    // Make sure loading indicator is visible during model creation
+    isModelCurrentlyLoaded = false;
     const loadingIndicator = document.querySelector('.model-loading');
     if (loadingIndicator) {
         loadingIndicator.classList.add('active');
-        document.querySelector('.canvas-overlay').style.zIndex = '10';
+        loadingIndicator.querySelector('span').textContent = "Model oluşturuluyor...";
+        const overlay = document.querySelector('.canvas-overlay');
+        if(overlay) overlay.style.zIndex = '10'; 
     }
     
-    // Clear any existing model and dispose resources
-    if (tableModel) {
-        disposeTableModel(scene);
-    }
+    console.log("TABLEMODEL.JS: createTable çağrıldı. Yapılandırma:", config);
+
+    disposeTableModel(scene);
     
-    // Create table group to hold all parts
-    tableModel = new THREE.Group();
+    tableModelGroup = new THREE.Group();
+    tableModelGroup.name = "InteractiveTable"; 
     
-    // Convert dimensions from cm to meters
     const width = config.width / 100;
     const length = config.length / 100;
     const height = config.height / 100;
-    const thickness = config.thickness / 100; // Convert thickness from cm to meters
+    const thickness = config.thickness / 100; 
     
-    // Get materials
-    console.log("TableModel creating material, material name:", config.material);
+    let topMaterial, legMaterial;
+    try {
+        // THREE.Cache.clear(); // Genellikle gerekli değil ve performansı düşürebilir. 
+                               // Doku güncelleme sorunları varsa materials.js'deki texture.needsUpdate = true; yeterli olmalı.
+        console.log(`TABLEMODEL.JS: MaterialsModule.createMaterial çağrılıyor (${config.material})`);
+        topMaterial = window.MaterialsModule.createMaterial(config.material);
+        console.log(`TABLEMODEL.JS: MaterialsModule.createMetalMaterial çağrılıyor`);
+        legMaterial = window.MaterialsModule.createMetalMaterial(); 
+    } catch (e) {
+        console.error("TABLEMODEL.JS: Malzeme oluşturulurken hata:", e);
+        if (loadingIndicator) loadingIndicator.classList.remove('active');
+        return null; 
+    }
+
+    if (!topMaterial) {
+        console.error("TABLEMODEL.JS: Üst malzeme (topMaterial) oluşturulamadı. Muhtemelen MaterialsModule.createMaterial bir sorunla karşılaştı.");
+        topMaterial = new THREE.MeshStandardMaterial({color: 0xff00ff}); // Hata durumunda parlak pembe
+    }
+     if (!legMaterial) {
+        console.error("TABLEMODEL.JS: Ayak malzemesi (legMaterial) oluşturulamadı.");
+        legMaterial = new THREE.MeshStandardMaterial({color: 0x00ffff}); // Hata durumunda parlak camgöbeği
+    }
+    console.log("TABLEMODEL.JS: Üst Malzeme Adı:", topMaterial.name, "Doku Var mı?", !!topMaterial.map);
+    console.log("TABLEMODEL.JS: Ayak Malzeme Adı:", legMaterial.name);
     
-    // Force a completely new material creation each time
-    THREE.Cache.clear(); // Clear any cached textures
-    
-    // Create material with extra emphasis on unique material per type
-    const topMaterial = window.MaterialsModule.createMaterial(config.material, {
-        // Override some properties to make material differences more obvious
-        roughness: 0.5,
-        metalness: 0.2
-    });
-    
-    const legMaterial = window.MaterialsModule.createMetalMaterial();
-    
-    // Create the table with the specified properties
     createTableWithStyle(width, length, height, thickness, topMaterial, legMaterial, config.edgeStyle, config.legStyle);
     
-    // Add model to scene
-    scene.add(tableModel);
+    scene.add(tableModelGroup);
+    addShadowPlaneToScene(scene);
     
-    // Position the table group - center in the scene
-    tableModel.position.set(0, 0, 0);
-    
-    // Add a plane for shadow beneath table
-    addShadowPlane(scene);
-    
-    // Hide loading indicator with a slight delay to ensure model is fully rendered
     setTimeout(function() {
         if (loadingIndicator) {
             loadingIndicator.classList.remove('active');
+            const overlay = document.querySelector('.canvas-overlay');
+            if(overlay) overlay.style.zIndex = '5'; 
         }
-        isModelLoaded = true;
-    }, 500);
+        isModelCurrentlyLoaded = true;
+        console.log("TABLEMODEL.JS: Masa modeli başarıyla oluşturuldu ve sahneye eklendi.");
+    }, 350); // Biraz daha uzun gecikme, dokuların yüklenmesine zaman tanımak için
     
-    return tableModel;
+    return tableModelGroup;
 }
 
 /**
- * Properly disposes the current table model and removes from scene
- * @param {THREE.Scene} scene - The scene containing the model
+ * Properly disposes the current table model and its resources
  */
 function disposeTableModel(scene) {
-    if (!tableModel) return;
-    
-    console.log("Disposing table model and all resources");
-    
-    // Dispose geometries and materials to prevent memory leaks
-    tableModel.traverse(function(child) {
-        if (child.isMesh) {
-            if (child.geometry) {
-                child.geometry.dispose();
-            }
-            if (child.material) {
-                if (Array.isArray(child.material)) {
-                    child.material.forEach(function(material) {
-                        // Also dispose textures
-                        if (material.map) {
-                            material.map.dispose();
+    if (tableModelGroup) {
+        console.log("TABLEMODEL.JS: Önceki masa modeli temizleniyor...");
+        tableModelGroup.traverse(function(object) {
+            if (object.isMesh) {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(function(material) {
+                            if (material.map) {
+                                material.map.dispose(); 
+                                console.log("TABLEMODEL.JS: Doku temizlendi:", material.map.uuid);
+                            }
+                            material.dispose();
+                        });
+                    } else {
+                        if (object.material.map) {
+                            object.material.map.dispose();
+                            console.log("TABLEMODEL.JS: Doku temizlendi:", object.material.map.uuid);
                         }
-                        material.dispose();
-                    });
-                } else {
-                    // Also dispose textures
-                    if (child.material.map) {
-                        child.material.map.dispose();
+                        object.material.dispose();
                     }
-                    child.material.dispose();
                 }
             }
-        }
-    });
-    
-    scene.remove(tableModel);
-    tableModel = null;
+        });
+        scene.remove(tableModelGroup); 
+        tableModelGroup = null;
+        console.log("TABLEMODEL.JS: Önceki masa modeli başarıyla temizlendi.");
+    }
+    if (shadowPlane) {
+        if (shadowPlane.geometry) shadowPlane.geometry.dispose();
+        if (shadowPlane.material) shadowPlane.material.dispose();
+        scene.remove(shadowPlane);
+        shadowPlane = null;
+    }
+    isModelCurrentlyLoaded = false;
 }
 
 /**
- * Creates a table with a specific style
- * @private
+ * Creates a table with a specific style (edge, legs)
  */
 function createTableWithStyle(width, length, height, thickness, topMaterial, legMaterial, edgeStyle, legStyle) {
-    // Create table top with proper edge style
-    let tableTop;
+    let tableTopMesh;
+    console.log(`TABLEMODEL.JS: createTableWithStyle - Kenar: ${edgeStyle}, Ayak: ${legStyle}`);
     
-    // Apply different edge styles
     if (edgeStyle === 'beveled') {
-        tableTop = createBeveledTableTop(width, length, thickness, topMaterial);
+        tableTopMesh = createBeveledTableTopGeometry(width, length, thickness, topMaterial);
     } else if (edgeStyle === 'rounded') {
-        tableTop = createRoundedTableTop(width, length, thickness, topMaterial);
-    } else {
-        // Create straight edge table top (default)
-        const topGeometry = new THREE.BoxGeometry(width, thickness, length);
-        tableTop = new THREE.Mesh(topGeometry, topMaterial);
+        tableTopMesh = createRoundedTableTopGeometry(width, length, thickness, topMaterial);
+    } else { 
+        const topGeom = new THREE.BoxGeometry(width, thickness, length);
+        tableTopMesh = new THREE.Mesh(topGeom, topMaterial);
+         console.log("TABLEMODEL.JS: Düz kenarlı masa üstü oluşturuldu. Malzeme dokusu var mı?", !!tableTopMesh.material.map);
     }
     
-    tableTop.position.y = height - thickness / 2;
-    tableTop.castShadow = true;
-    tableTop.receiveShadow = true;
-    tableModel.add(tableTop);
+    tableTopMesh.name = "TableTop";
+    tableTopMesh.position.y = height - (thickness / 2); 
+    tableTopMesh.castShadow = true;    
+    tableTopMesh.receiveShadow = true; 
+    tableModelGroup.add(tableTopMesh);
+    console.log("TABLEMODEL.JS: Masa üstü eklendi:", tableTopMesh);
     
-    // Create legs based on selected leg style
     if (legStyle === 'u-shape') {
-        createUShapeLegs(width, length, height, thickness, legMaterial);
-    } else {
-        // Standard legs (default)
-        createStandardLegs(width, length, height, thickness, legMaterial);
+        createUShapeLegsGeometry(width, length, height, thickness, legMaterial);
+    } else { 
+        createStandardLegsGeometry(width, length, height, thickness, legMaterial);
     }
 }
 
 /**
- * Creates a beveled edge table top
- * @private
+ * Creates a beveled edge table top geometry
  */
-function createBeveledTableTop(width, length, thickness, material) {
-    // Create a shape for the beveled table top
+function createBeveledTableTopGeometry(width, length, thickness, material) {
     const shape = new THREE.Shape();
-    const bevelSize = 0.02; // 2cm bevel
+    const R = 0.02; 
+
+    shape.moveTo(-width / 2 + R, -length / 2);
+    shape.lineTo(width / 2 - R, -length / 2);
+    shape.absarc(width / 2 - R, -length / 2 + R, R, -Math.PI / 2, 0, false); 
+    shape.lineTo(width / 2, length / 2 - R);
+    shape.absarc(width / 2 - R, length / 2 - R, R, 0, Math.PI / 2, false); 
+    shape.lineTo(-width / 2 + R, length / 2);
+    shape.absarc(-width / 2 + R, length / 2 - R, R, Math.PI / 2, Math.PI, false); 
+    shape.lineTo(-width / 2, -length / 2 + R);
+    shape.absarc(-width / 2 + R, -length / 2 + R, R, Math.PI, Math.PI * 3 / 2, false); 
     
-    // Define the shape with beveled corners
-    shape.moveTo(-width/2 + bevelSize, -length/2);
-    shape.lineTo(width/2 - bevelSize, -length/2);
-    shape.lineTo(width/2, -length/2 + bevelSize);
-    shape.lineTo(width/2, length/2 - bevelSize);
-    shape.lineTo(width/2 - bevelSize, length/2);
-    shape.lineTo(-width/2 + bevelSize, length/2);
-    shape.lineTo(-width/2, length/2 - bevelSize);
-    shape.lineTo(-width/2, -length/2 + bevelSize);
-    shape.lineTo(-width/2 + bevelSize, -length/2);
-    
-    // Extrude settings
     const extrudeSettings = {
         steps: 1,
         depth: thickness,
         bevelEnabled: true,
-        bevelThickness: thickness * 0.2,
-        bevelSize: thickness * 0.1,
-        bevelOffset: 0,
-        bevelSegments: 3
+        bevelThickness: thickness * 0.15, 
+        bevelSize: thickness * 0.1,      
+        bevelOffset: -thickness * 0.05,  
+        bevelSegments: 3                 
     };
     
-    // Create geometry and mesh
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geometry.rotateX(Math.PI / 2); // rotate to correct orientation
+    geometry.center(); 
+    geometry.rotateX(Math.PI / 2); 
     
-    return new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, material);
+    console.log("TABLEMODEL.JS: Pahlı kenarlı masa üstü oluşturuldu. Malzeme dokusu var mı?", !!mesh.material.map);
+    return mesh;
 }
 
 /**
- * Creates a rounded edge table top
- * @private
+ * Creates a rounded edge table top geometry
  */
-function createRoundedTableTop(width, length, thickness, material) {
-    // Create a shape for rounded edges
+function createRoundedTableTopGeometry(width, length, thickness, material) {
+    const R = Math.min(width, length) * 0.08; 
     const shape = new THREE.Shape();
-    const radius = 0.05; // 5cm corner radius
-    
-    // Define the shape with rounded corners
-    shape.moveTo(-width/2 + radius, -length/2);
-    shape.lineTo(width/2 - radius, -length/2);
-    shape.quadraticCurveTo(width/2, -length/2, width/2, -length/2 + radius);
-    shape.lineTo(width/2, length/2 - radius);
-    shape.quadraticCurveTo(width/2, length/2, width/2 - radius, length/2);
-    shape.lineTo(-width/2 + radius, length/2);
-    shape.quadraticCurveTo(-width/2, length/2, -width/2, length/2 - radius);
-    shape.lineTo(-width/2, -length/2 + radius);
-    shape.quadraticCurveTo(-width/2, -length/2, -width/2 + radius, -length/2);
-    
-    // Extrude settings
+
+    shape.moveTo(-width / 2 + R, -length / 2); 
+    shape.lineTo(width / 2 - R, -length / 2); 
+    shape.quadraticCurveTo(width / 2, -length / 2, width / 2, -length / 2 + R); 
+    shape.lineTo(width / 2, length / 2 - R); 
+    shape.quadraticCurveTo(width / 2, length / 2, width / 2 - R, length / 2); 
+    shape.lineTo(-width / 2 + R, length / 2); 
+    shape.quadraticCurveTo(-width / 2, length / 2, -width / 2, length / 2 - R); 
+    shape.lineTo(-width / 2, -length / 2 + R); 
+    shape.quadraticCurveTo(-width / 2, -length / 2, -width / 2 + R, -length / 2);
+
     const extrudeSettings = {
         steps: 1,
         depth: thickness,
         bevelEnabled: true,
-        bevelThickness: thickness * 0.15,
-        bevelSize: thickness * 0.1,
+        bevelThickness: thickness * 0.1,
+        bevelSize: thickness * 0.08,
         bevelOffset: 0,
-        bevelSegments: 5
+        bevelSegments: 5 
     };
     
-    // Create geometry and mesh
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geometry.rotateX(Math.PI / 2); // rotate to correct orientation
+    geometry.center();
+    geometry.rotateX(Math.PI / 2);
     
-    return new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, material);
+    console.log("TABLEMODEL.JS: Yuvarlak kenarlı masa üstü oluşturuldu. Malzeme dokusu var mı?", !!mesh.material.map);
+    return mesh;
 }
 
 /**
- * Creates standard table legs
- * @private
+ * Creates standard table legs geometry
  */
-function createStandardLegs(width, length, height, thickness, legMaterial) {
-    // Calculate leg dimensions proportional to table size
-    const tableSize = Math.min(width, length); // Use the smaller dimension for proportionality
-    const legWidth = Math.max(tableSize * 0.05, 0.03); // 5% of table size, min 3cm
-    const legDepth = legWidth; // Square legs
-    const legHeight = height - thickness;
-    
-    // Calculate leg inset proportional to table size
-    const legInset = Math.max(tableSize * 0.1, 0.1); // 10% of table size, min 10cm
-    
-    // Create 4 legs at the corners
-    for (let i = 0; i < 4; i++) {
-        const xPos = (i % 2 === 0 ? -1 : 1) * (width / 2 - legInset);
-        const zPos = (i < 2 ? 1 : -1) * (length / 2 - legInset);
-        
-        const legGeometry = new THREE.BoxGeometry(legWidth, legHeight, legDepth);
-        const leg = new THREE.Mesh(legGeometry, legMaterial);
-        leg.position.set(xPos, legHeight / 2, zPos);
-        leg.castShadow = true;
-        tableModel.add(leg);
-    }
-}
+function createStandardLegsGeometry(width, length, height, thickness, legMaterial) {
+    const legSize = Math.max(0.04, Math.min(width, length) * 0.05); 
+    const legHeight = height - thickness; 
+    const inset = Math.max(0.05, Math.min(width, length) * 0.1); 
 
-/**
- * Creates U-shaped table legs - two connected sides
- * @private
- */
-function createUShapeLegs(width, length, height, thickness, legMaterial) {
-    // Calculate leg dimensions proportional to table size
-    const tableSize = Math.min(width, length);
-    const legWidth = Math.max(tableSize * 0.04, 0.03); // 4% of table size, min 3cm
-    const legDepth = legWidth;
-    const legHeight = height - thickness;
-    
-    // Calculate leg inset proportional to table size
-    const legInset = Math.max(tableSize * 0.08, 0.08); // 8% of table size, min 8cm
-    
-    // Calculate connector position - slightly recessed from the edge
-    const connectorInset = legInset * 0.5;
-    
-    // Create two U-shaped leg sets (one on each end)
-    for (let side = 0; side < 2; side++) {
-        const zPos = (side === 0 ? 1 : -1) * (length / 2 - legInset);
-        
-        // Create the vertical legs at the corners
-        for (let i = 0; i < 2; i++) {
-            const xPos = (i === 0 ? -1 : 1) * (width / 2 - legInset);
-            
-            // Vertical leg
-            const legGeometry = new THREE.BoxGeometry(legWidth, legHeight, legDepth);
-            const leg = new THREE.Mesh(legGeometry, legMaterial);
-            leg.position.set(xPos, legHeight / 2, zPos);
-            leg.castShadow = true;
-            tableModel.add(leg);
-        }
-        
-        // Create the horizontal connector between the legs
-        const connectorWidth = width - (2 * legInset) + legWidth;
-        const connectorHeight = legWidth;
-        const connectorDepth = legDepth;
-        const connectorY = legHeight * 0.2; // Position 20% up from the bottom
-        
-        const connectorGeometry = new THREE.BoxGeometry(connectorWidth, connectorHeight, connectorDepth);
-        const connector = new THREE.Mesh(connectorGeometry, legMaterial);
-        connector.position.set(0, connectorY, zPos);
-        connector.castShadow = true;
-        tableModel.add(connector);
-    }
-}
+    const legPositions = [
+        new THREE.Vector3(width / 2 - inset, legHeight / 2, length / 2 - inset), 
+        new THREE.Vector3(-width / 2 + inset, legHeight / 2, length / 2 - inset),
+        new THREE.Vector3(width / 2 - inset, legHeight / 2, -length / 2 + inset),
+        new THREE.Vector3(-width / 2 + inset, legHeight / 2, -length / 2 + inset)
+    ];
 
-/**
- * Creates a metal bar element
- * @private
- */
-function createMetalBar(width, height, depth, x, y, z, material, rotation = 0) {
-    const geometry = new THREE.BoxGeometry(width, height, depth);
-    const bar = new THREE.Mesh(geometry, material);
-    bar.position.set(x, y, z);
-    if (rotation !== 0) {
-        bar.rotation.y = rotation;
-    }
-    bar.castShadow = true;
-    tableModel.add(bar);
-    return bar;
-}
-
-/**
- * Adds a shadow-receiving plane beneath the table
- * @private
- */
-function addShadowPlane(scene) {
-    const groundGeometry = new THREE.PlaneGeometry(15, 15);
-    const groundMaterial = new THREE.ShadowMaterial({
-        opacity: 0.3
+    legPositions.forEach((pos, index) => {
+        const legGeom = new THREE.BoxGeometry(legSize, legHeight, legSize);
+        const legMesh = new THREE.Mesh(legGeom, legMaterial);
+        legMesh.name = "StandardLeg_" + index;
+        legMesh.position.copy(pos);
+        legMesh.castShadow = true;
+        legMesh.receiveShadow = true;
+        tableModelGroup.add(legMesh);
     });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.01;
-    ground.receiveShadow = true;
-    scene.add(ground);
+    console.log("TABLEMODEL.JS: Standart ayaklar oluşturuldu.");
 }
 
 /**
- * Updates the model's header with current material and edge style information
- * @param {string} currentMaterial - Current material name 
- * @param {string} edgeStyle - Current edge style
+ * Creates U-shaped table legs geometry
+ */
+function createUShapeLegsGeometry(width, length, height, thickness, legMaterial) {
+    const legBarThickness = Math.max(0.03, Math.min(width, length) * 0.04); 
+    const legHeight = height - thickness;
+    const legInset = Math.max(0.08, Math.min(width, length) * 0.08); 
+
+    [-1, 1].forEach((sideMultiplier, sideIndex) => {
+        const zPos = sideMultiplier * (length / 2 - legInset); 
+
+        const verticalBarGeom = new THREE.BoxGeometry(legBarThickness, legHeight, legBarThickness);
+        const leg1 = new THREE.Mesh(verticalBarGeom, legMaterial);
+        leg1.name = `UShapeLeg_Side${sideIndex}_V1`;
+        leg1.position.set(width / 2 - legInset, legHeight / 2, zPos);
+        leg1.castShadow = true;
+        tableModelGroup.add(leg1);
+
+        const leg2 = new THREE.Mesh(verticalBarGeom, legMaterial);
+        leg2.name = `UShapeLeg_Side${sideIndex}_V2`;
+        leg2.position.set(-width / 2 + legInset, legHeight / 2, zPos);
+        leg2.castShadow = true;
+        tableModelGroup.add(leg2);
+        
+        const connectorWidth = width - 2 * legInset + legBarThickness; 
+        const horizontalBarGeom = new THREE.BoxGeometry(connectorWidth, legBarThickness, legBarThickness);
+        const connector = new THREE.Mesh(horizontalBarGeom, legMaterial);
+        connector.name = `UShapeLeg_Side${sideIndex}_Connector`;
+        connector.position.set(0, legBarThickness / 2 + 0.02, zPos); 
+        connector.castShadow = true;
+        tableModelGroup.add(connector);
+    });
+    console.log("TABLEMODEL.JS: U-şekilli ayaklar oluşturuldu.");
+}
+
+
+/**
+ * Adds a shadow-receiving plane to the scene
+ */
+function addShadowPlaneToScene(scene) {
+    if (shadowPlane) {
+        if (shadowPlane.geometry) shadowPlane.geometry.dispose();
+        if (shadowPlane.material) shadowPlane.material.dispose();
+        scene.remove(shadowPlane);
+        shadowPlane = null;
+    }
+
+    const planeSize = 10; 
+    const groundGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
+    const groundMaterial = new THREE.ShadowMaterial({ opacity: 0.35, side: THREE.DoubleSide }); // Opaklık biraz artırıldı
+    shadowPlane = new THREE.Mesh(groundGeometry, groundMaterial);
+    shadowPlane.rotation.x = -Math.PI / 2; 
+    shadowPlane.position.y = 0.001; // Zeminin biraz üzerinde (z-fighting önlemek için)
+    shadowPlane.receiveShadow = true; 
+    shadowPlane.name = "ShadowPlane";
+    scene.add(shadowPlane);
+    console.log("TABLEMODEL.JS: Gölge düzlemi eklendi/güncellendi.");
+}
+
+/**
+ * Updates the model header with current material and edge style information
  */
 function updateModelHeader(currentMaterial, edgeStyle) {
-    // Update header to show current material and edge style
     const edgeLabel = edgeStyle.charAt(0).toUpperCase() + edgeStyle.slice(1);
-    const materialLabel = currentMaterial.charAt(0).toUpperCase() + currentMaterial.slice(1);
+    // Malzeme ismini MATERIALS objesinden almak daha doğru olabilir (Türkçe isimler için)
+    const materialProps = window.MaterialsModule.getMaterialProperties(currentMaterial);
+    const materialLabel = materialProps ? materialProps.name : currentMaterial.charAt(0).toUpperCase() + currentMaterial.slice(1);
     
     const headerElement = document.querySelector('.preview-header h3');
     if (headerElement) {
         headerElement.innerHTML = 
-            `Masa Önizleme <span class="material-indicator">${materialLabel}</span> 
-            <span class="edge-indicator">${edgeLabel} Kenar</span>`;
+            `Masa Önizleme <span class="material-indicator">${materialLabel}</span> <span class="edge-indicator">${edgeLabel} Kenar</span>`;
     }
 }
 
-// Export the module's public API
 window.TableModelModule = {
     createTable,
-    disposeTableModel,
+    disposeTableModel, 
     updateModelHeader,
-    get isLoaded() { return isModelLoaded; }
+    get isLoaded() { return isModelCurrentlyLoaded; } 
 };
