@@ -16,7 +16,9 @@ var appState = {
     scene: null, // Three.js sahnesi (Three.js scene)
     renderer: null, // Three.js renderer
     camera: null, // Three.js kamera (Three.js camera)
-    controls: null // Three.js OrbitControls
+    controls: null, // Three.js OrbitControls
+    isAutoRotating: false, // Otomatik döndürme durumu
+    autoRotateSpeed: 0.01 // Döndürme hızı
 };
 
 /**
@@ -128,25 +130,7 @@ function addLights() {
     appState.scene.add(frontLight);
 }
 
-/**
- * Animasyon döngüsü
- * Animation loop
- */
-function animate() {
-    requestAnimationFrame(animate); // Bir sonraki kare için animasyon iste (Request animation frame for the next frame)
-    if (appState.controls && window.ControlsModule) {
-        window.ControlsModule.update(); // Kamera kontrollerini güncelle (Update camera controls)
-    }
-    if (appState.renderer && appState.scene && appState.camera) {
-        try {
-            appState.renderer.render(appState.scene, appState.camera); // Sahneyi render et (Render the scene)
-        } catch (e) {
-            console.error("Render döngüsünde hata:", e);
-            // Animasyon döngüsünü durdurabilir veya kullanıcıya bir hata mesajı gösterebilirsiniz.
-            // You can stop the animation loop here or show an error message to the user.
-        }
-    }
-}
+
 
 /**
  * Pencere yeniden boyutlandırma olaylarını işler
@@ -197,36 +181,17 @@ function updateTableModel() {
     // Mevcut yapılandırma ile masa oluştur (Create table with current configuration)
     if (window.TableModelModule && appState.scene) {
         try {
+            // Önce eski modeli sil (Dispose old model first)
+            window.TableModelModule.disposeTableModel(appState.scene);
+
             // Modeli oluşturmadan önce kısa bir gecikme ekleyerek yükleme göstergesinin görünmesini sağla
             setTimeout(function() {
                 const tableGroup = window.TableModelModule.createTable(config, appState.scene);
                 // Model başlığını güncelle (Update model header)
                 window.TableModelModule.updateModelHeader(appState.currentMaterial, appState.edgeStyle);
 
-                // TANILAYICI GÜNLÜK: Model oluşturulduktan sonra doku kontrolü
-                setTimeout(function() {
-                    if (appState.scene) {
-                        const tableObject = appState.scene.getObjectByName("InteractiveTable");
-                        if (tableObject) {
-                            let hasTexture = false;
-                            tableObject.traverse(function(child) {
-                                if (child.isMesh && child.material && child.material.map) {
-                                    console.log("DEBUG Texture Check: Mesh bulundu, malzeme adı:", child.material.name, "Doku (map):", child.material.map);
-                                    hasTexture = true;
-                                } else if (child.isMesh && child.material) {
-                                    console.log("DEBUG Texture Check: Mesh bulundu, malzeme adı:", child.material.name, "DOKU YOK (map is null or undefined)");
-                                }
-                            });
-                            if (hasTexture) {
-                                console.log("DEBUG Texture Check: En az bir mesh üzerinde doku bulundu.");
-                            } else {
-                                console.warn("DEBUG Texture Check: Modelde hiçbir mesh üzerinde doku (material.map) bulunamadı. Lütfen 'materials.js' ve doku dosyalarınızı kontrol edin.");
-                            }
-                        } else {
-                            console.warn("DEBUG Texture Check: 'InteractiveTable' adlı model grup sahnesinde bulunamadı.");
-                        }
-                    }
-                }, 500); // Modelin ve dokuların yüklenmesi için biraz daha bekle
+                // Model başarıyla oluşturuldu - texture kontrolü artık gerekli değil (renkler kullanıyoruz)
+                console.log("MAIN.JS: Masa modeli başarıyla oluşturuldu ve sahneye eklendi.");
 
             }, 50); // 50ms gecikme
 
@@ -246,59 +211,251 @@ function updateTableModel() {
 }
 
 /**
+ * Otomatik döndürme fonksiyonu
+ */
+function toggleAutoRotate() {
+    appState.isAutoRotating = !appState.isAutoRotating;
+
+    const playBtn = document.getElementById('playPauseBtn');
+    const icon = playBtn.querySelector('i');
+
+    if (appState.isAutoRotating) {
+        playBtn.classList.add('active');
+        icon.className = 'fas fa-pause';
+        playBtn.title = 'Döndürmeyi Durdur';
+        console.log('MAIN.JS: Otomatik döndürme başlatıldı');
+    } else {
+        playBtn.classList.remove('active');
+        icon.className = 'fas fa-play';
+        playBtn.title = 'Otomatik Döndürme';
+        console.log('MAIN.JS: Otomatik döndürme durduruldu');
+    }
+}
+
+/**
+ * Anlık indirme fonksiyonu
+ */
+function downloadScreenshot() {
+    if (!appState.renderer) {
+        console.error('MAIN.JS: Renderer bulunamadı, indirme yapılamıyor');
+        return;
+    }
+
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.classList.add('downloading');
+
+    try {
+        // Render'ı güncelle
+        appState.renderer.render(appState.scene, appState.camera);
+
+        // Canvas'tan veri URL'si al
+        const canvas = appState.renderer.domElement;
+        const dataURL = canvas.toDataURL('image/png');
+
+        // İndirme linki oluştur
+        const link = document.createElement('a');
+        link.download = `masa-tasarim-${Date.now()}.png`;
+        link.href = dataURL;
+
+        // İndirmeyi başlat
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        console.log('MAIN.JS: Ekran görüntüsü indirildi');
+
+        // Butonu normale döndür
+        setTimeout(() => {
+            downloadBtn.classList.remove('downloading');
+        }, 1000);
+
+    } catch (error) {
+        console.error('MAIN.JS: İndirme hatası:', error);
+        downloadBtn.classList.remove('downloading');
+    }
+}
+
+/**
+ * Animasyon döngüsü
+ */
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Otomatik döndürme
+    if (appState.isAutoRotating && appState.controls) {
+        appState.controls.autoRotate = true;
+        appState.controls.autoRotateSpeed = appState.autoRotateSpeed * 100; // OrbitControls için uygun hız
+    } else if (appState.controls) {
+        appState.controls.autoRotate = false;
+    }
+
+    // Kontrolleri güncelle
+    if (appState.controls) {
+        appState.controls.update();
+    }
+
+    // Sahneyi render et
+    if (appState.renderer && appState.scene && appState.camera) {
+        appState.renderer.render(appState.scene, appState.camera);
+    }
+}
+
+/**
  * Tüm UI olay dinleyicilerini başlatır
  * Initializes all UI event listeners
  */
 function initEventListeners() {
-    // Malzeme seçimi (Material selection)
-    document.querySelectorAll('.material-item').forEach(function(item) {
-        item.addEventListener('click', function() {
+    // Malzeme seçimi (Material selection) - Event delegation kullanarak
+    const materialGrid = document.querySelector('.material-grid');
+    if (materialGrid) {
+        materialGrid.addEventListener('click', function(event) {
+            console.log("MAIN.JS: Material grid'e tıklandı, event target:", event.target);
+
+            // Tıklanan element'i veya en yakın .material-item'ı bul
+            let clickedItem = event.target.closest('.material-item');
+            console.log("MAIN.JS: Bulunan material item:", clickedItem);
+
+            if (!clickedItem) {
+                console.log("MAIN.JS: Material item bulunamadı");
+                return;
+            }
+
+            console.log("MAIN.JS: Tıklanan item HTML:", clickedItem.outerHTML);
+
             // Önceki seçimi kaldır (Remove previous selection)
             document.querySelectorAll('.material-item').forEach(function(i) {
                 i.classList.remove('selected');
             });
             // Yeni öğeyi seç (Select the new item)
-            item.classList.add('selected');
+            clickedItem.classList.add('selected');
 
             // Malzeme türünü al (Get material type from class)
-            var classes = item.classList;
+            var classes = Array.from(clickedItem.classList);
+            console.log("MAIN.JS: Item class'ları:", classes);
+
+            var foundMaterial = null;
             for (const className of classes) {
+                console.log("MAIN.JS: Kontrol edilen class:", className);
                 if (className.startsWith('material-')) {
-                    appState.currentMaterial = className.replace('material-', '');
+                    foundMaterial = className.replace('material-', '');
+                    console.log("MAIN.JS: Bulunan malzeme:", foundMaterial);
+                    appState.currentMaterial = foundMaterial;
                     break;
                 }
             }
+
+            if (!foundMaterial) {
+                console.error("MAIN.JS: Malzeme class'ı bulunamadı! Classes:", classes);
+                // Fallback olarak varsayılan malzeme kullan
+                appState.currentMaterial = 'ceviz';
+            } else {
+                console.log("MAIN.JS: ✅ Malzeme başarıyla değiştirildi:", foundMaterial);
+                console.log("MAIN.JS: ✅ appState.currentMaterial:", appState.currentMaterial);
+            }
+
             // Masa modelini ve fiyatlandırmayı güncelle (Update table model and pricing)
+            console.log("MAIN.JS: updateTableModel çağrılıyor...");
             updateTableModel();
             if (window.UtilsModule) window.UtilsModule.updatePricing();
         });
-    });
+    }
 
     // Boyut kaydırıcıları (Dimension sliders)
     document.querySelectorAll('input[type="range"]').forEach(function(slider) {
-        slider.addEventListener('input', function() {
+        // Throttled function for immediate model updates during sliding
+        var throttledModelUpdate = window.UtilsModule.throttle(function() {
+            updateTableModel();
+        }, 100); // Update every 100ms while sliding
+
+        // Debounced function for final model update when sliding stops
+        var debouncedModelUpdate = window.UtilsModule.debounce(function() {
+            updateTableModel();
+        }, 50); // Very short delay for final update
+
+        // Debounced function for pricing updates
+        var debouncedPricingUpdate = window.UtilsModule.debounce(function() {
+            if (window.UtilsModule) window.UtilsModule.updatePricing();
+        }, 300);
+
+        // Function to handle dimension updates
+        function handleDimensionUpdate() {
             var dimension = slider.dataset.dimension;
             var value = parseFloat(slider.value);
-            var valueDisplay = slider.closest('.dimension-row').querySelector('.dimension-value');
 
-            if (valueDisplay) { // Değer gösterge elemanının varlığını kontrol et
-                 if (dimension === 'thickness' && value < 1) { // Kalınlık için özel gösterim (mm)
+            // Input validation
+            if (isNaN(value)) {
+                console.warn(`Invalid value for ${dimension}: ${slider.value}`);
+                return;
+            }
+
+            // Dimension-specific validation
+            var isValid = true;
+            var errorMessage = '';
+
+            switch(dimension) {
+                case 'width':
+                    if (value < 80 || value > 180) {
+                        isValid = false;
+                        errorMessage = 'Genişlik 80-180 cm arasında olmalıdır';
+                    }
+                    break;
+                case 'length':
+                    if (value < 100 || value > 240) {
+                        isValid = false;
+                        errorMessage = 'Uzunluk 100-240 cm arasında olmalıdır';
+                    }
+                    break;
+                case 'height':
+                    if (value < 65 || value > 85) {
+                        isValid = false;
+                        errorMessage = 'Yükseklik 65-85 cm arasında olmalıdır';
+                    }
+                    break;
+                case 'thickness':
+                    if (value < 0.3 || value > 5) {
+                        isValid = false;
+                        errorMessage = 'Kalınlık 0.3-5 cm arasında olmalıdır';
+                    }
+                    break;
+            }
+
+            if (!isValid) {
+                console.warn(`Validation failed for ${dimension}: ${errorMessage}`);
+                return;
+            }
+
+            // Update UI immediately (no debouncing for UI updates)
+            var valueDisplay = slider.closest('.dimension-row').querySelector('.dimension-value');
+            if (valueDisplay) {
+                if (dimension === 'thickness' && value < 1) {
                     valueDisplay.textContent = (value * 10).toFixed(0) + ' mm';
                 } else {
-                    valueDisplay.textContent = value.toFixed(0) + ' cm'; // Diğer boyutlar için cm
+                    valueDisplay.textContent = value.toFixed(0) + ' cm';
                 }
             }
 
-            // Uygulama durumundaki boyutu güncelle (Update dimension in app state)
+            // Update app state immediately
             switch(dimension) {
                 case 'width': appState.tableWidth = value; break;
                 case 'length': appState.tableLength = value; break;
                 case 'height': appState.tableHeight = value; break;
                 case 'thickness': appState.tableThickness = value; break;
             }
-            updateTableModel();
-            if (window.UtilsModule) window.UtilsModule.updatePricing();
-        });
+
+            // Update dimensions badge immediately
+            if (window.UtilsModule && (dimension === 'width' || dimension === 'length')) {
+                window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
+            }
+
+            // Use both throttled (immediate) and debounced (final) updates
+            throttledModelUpdate(); // Immediate response while sliding
+            debouncedModelUpdate(); // Final update when sliding stops
+            debouncedPricingUpdate();
+        }
+
+        // Add both input and change event listeners for immediate response
+        slider.addEventListener('input', handleDimensionUpdate);
+        slider.addEventListener('change', handleDimensionUpdate);
     });
 
     // Stil seçenekleri (Edge and Leg style options)
@@ -372,6 +529,18 @@ function initEventListeners() {
                 orderMessageDiv.textContent = '';
             }, 10000); // 10 saniye sonra mesajı sil (Clear message after 10 seconds)
         });
+    }
+
+    // Play/Pause butonu
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (playPauseBtn) {
+        playPauseBtn.addEventListener('click', toggleAutoRotate);
+    }
+
+    // İndirme butonu
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadScreenshot);
     }
 }
 

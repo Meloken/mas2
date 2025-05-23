@@ -1,156 +1,88 @@
 /**
  * @file materials.js
  * @description Modern Masa Tasarımcısı uygulaması için malzeme yönetimi modülü
- * Malzeme özelliklerini, dokularını ve renklerini yönetir
+ * Sadece renk kodları kullanır, texture kullanmaz
  */
 
-// Uygulama durumu global olarak erişilebilir olduğu varsayılıyor (appState.renderer.capabilities.getMaxAnisotropy() için)
-// var appState = window.appState; // Eğer main.js'de global appState varsa
+// Renk kodları - malzeme adı yerine doğrudan renk kullanılacak
+const MATERIAL_COLORS = {
+    'ceviz': 0x654321,    // Koyu kahverengi
+    'mogano': 0xB22222,   // Kırmızı (FireBrick)
+    'mese': 0xF4A460,     // Açık kahverengi (SandyBrown)
+    'hus': 0xFFE4B5,      // Çok açık (Moccasin)
+    'ebene': 0x000000,    // Siyah
+    'geyik': 0x808080     // Gri
+};
 
-const MATERIALS = {
-    'ceviz': {
-        name: 'Ceviz',
-        color: 0x6A4F3B, // Daha koyu ve zengin bir kahverengi (Resimdeki gibi)
-        textureUrl: 'assets/textures/ceviz_wood_texture_dark.jpg' // Örnek yerel doku yolu
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Planks/New/35366/WoodPlanksNew0007_1_S.jpg'
-    },
-    'mogano': {
-        name: 'Maun',
-        color: 0x8C4A3C, // Kırmızımsı kahverengi, biraz daha canlı (Resimdeki gibi)
-        textureUrl: 'assets/textures/maun_wood_texture_reddish.jpg'
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Planks/Clean/20993/WoodPlanksClean0063_1_S.jpg'
-    },
-    'mese': {
-        name: 'Meşe',
-        color: 0xC8B59A, // Açık, hafif sarımsı ve desatüre kahverengi (Resimdeki gibi)
-        textureUrl: 'assets/textures/mese_wood_texture_light.jpg'
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Planks/New/35402/WoodPlanksNew0043_1_S.jpg'
-    },
-    'huş': {
-        name: 'Huş', // Resimde daha koyu ve grimsi bir ton var
-        color: 0x9A8C78, // Daha koyu, grimsi kahverengi (Resimdeki gibi)
-        textureUrl: 'assets/textures/hus_wood_texture_greyish.jpg'
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Planks/Painted/57075/WoodPlanksPainted0017_1_S.jpg' // (Biraz boyalı gibi ama renk tonu yakın)
-    },
-    'ebene': {
-        name: 'Abanoz',
-        color: 0x2A2B27, // Çok koyu, siyaha yakın, hafif yeşilimsi/kahverengi (Resimdeki gibi)
-        textureUrl: 'assets/textures/abanoz_wood_texture_dark.jpg'
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Fine%20Wood/Dark/127983/WoodFineDark0050_1_S.jpg'
-    },
-    'geyik': {
-        name: 'Dişbudak', // (Geyik yerine Dişbudak daha uygun bir ağaç ismi olabilir)
-        color: 0x7C6F62, // Orta-koyu, grimsi kahverengi (Resimdeki gibi)
-        textureUrl: 'assets/textures/disbudak_wood_texture_dark_grey.jpg'
-        // Alternatif online doku: 'https://www.textures.com/system/gallery/photos/Wood/Planks/Weathered/110800/WoodPlanksWeathered0003_1_S.jpg'
-    }
+// Malzeme isimleri
+const MATERIAL_NAMES = {
+    'ceviz': 'Ceviz',
+    'mogano': 'Maun',
+    'mese': 'Meşe',
+    'hus': 'Huş',
+    'ebene': 'Abanoz',
+    'geyik': 'Dişbudak'
 };
 
 /**
- * Belirtilen malzeme adının özelliklerini döndürür.
+ * Belirtilen malzeme adı için renk kodunu döndürür.
  * @param {string} materialName - Malzemenin adı (örn: 'ceviz').
- * @returns {object} Malzeme özellikleri (name, color, textureUrl).
+ * @returns {number} Hex renk kodu.
  */
-function getMaterialProperties(materialName) {
-    if (MATERIALS[materialName]) {
-        return MATERIALS[materialName];
+function getMaterialColor(materialName) {
+    // Geçersiz veya boş parametre kontrolü
+    if (!materialName || typeof materialName !== 'string') {
+        console.error(`MATERIALS.JS: Geçersiz malzeme adı: "${materialName}". Varsayılan 'ceviz' rengi kullanılıyor.`);
+        return MATERIAL_COLORS['ceviz'];
     }
-    console.warn(`MATERIALS.JS: '${materialName}' adlı malzeme bulunamadı. Varsayılan olarak 'ceviz' kullanılıyor.`);
-    return MATERIALS['ceviz']; // Varsayılan malzeme
+
+    // Malzeme adını temizle (trim ve lowercase)
+    const cleanMaterialName = materialName.trim().toLowerCase();
+
+    if (MATERIAL_COLORS[cleanMaterialName]) {
+        return MATERIAL_COLORS[cleanMaterialName];
+    }
+
+    console.warn(`MATERIALS.JS: '${materialName}' adlı malzeme bulunamadı. Mevcut malzemeler:`, Object.keys(MATERIAL_COLORS));
+    console.warn(`MATERIALS.JS: Varsayılan olarak 'ceviz' rengi kullanılıyor.`);
+    return MATERIAL_COLORS['ceviz']; // Varsayılan renk
+}
+
+/**
+ * Belirtilen malzeme adı için isim döndürür.
+ * @param {string} materialName - Malzemenin adı (örn: 'ceviz').
+ * @returns {string} Malzeme ismi.
+ */
+function getMaterialName(materialName) {
+    const cleanMaterialName = materialName ? materialName.trim().toLowerCase() : 'ceviz';
+    return MATERIAL_NAMES[cleanMaterialName] || MATERIAL_NAMES['ceviz'];
 }
 
 /**
  * Belirtilen ada sahip bir Three.js malzemesi oluşturur.
+ * Sadece renk kodları kullanır, texture kullanmaz.
  * @param {string} materialName - Oluşturulacak malzemenin adı.
- * @param {object} [options={}] - Ek malzeme seçenekleri (MeshPhysicalMaterial için).
- * @returns {THREE.MeshPhysicalMaterial} Oluşturulan malzeme.
+ * @param {object} [options={}] - Ek malzeme seçenekleri.
+ * @returns {THREE.MeshStandardMaterial} Oluşturulan malzeme.
  */
 function createMaterial(materialName, options = {}) {
-    console.log(`MATERIALS.JS: Malzeme oluşturuluyor: ${materialName}`);
+    const materialColor = getMaterialColor(materialName);
+    const materialDisplayName = getMaterialName(materialName);
 
-    const materialProps = getMaterialProperties(materialName);
-
-    const defaults = {
-        roughness: 0.65, // Ahşap için pürüzlülük biraz daha artırıldı
+    // Sadece renk kodları kullanarak malzeme oluştur
+    const materialSettings = {
+        color: new THREE.Color(materialColor), // THREE.Color kullan
+        roughness: 0.65,
         metalness: 0.0,
-        reflectivity: 0.25, // Yansıtıcılık biraz daha düşük
-        clearcoat: 0.15,
-        clearcoatRoughness: 0.35
+        map: null, // Texture kullanma
+        ...options // Ek seçenekleri uygula
     };
-    const settings = Object.assign({}, defaults, options);
 
-    let finalMaterial;
+    const finalMaterial = new THREE.MeshStandardMaterial(materialSettings);
+    finalMaterial.name = materialName + "_ColorMaterial";
 
-    if (materialProps.textureUrl) {
-        console.log(`MATERIALS.JS: Doku yükleniyor: ${materialProps.textureUrl}`);
+    console.log(`MATERIALS.JS: ${materialDisplayName} malzemesi oluşturuldu (renk: #${materialColor.toString(16)}).`);
 
-        const textureLoader = new THREE.TextureLoader();
-        try {
-            const texture = textureLoader.load(
-                materialProps.textureUrl,
-                function (loadedTexture) { // onLoad callback
-                    loadedTexture.needsUpdate = true; // Ensure texture updates
-                    loadedTexture.wrapS = THREE.RepeatWrapping; // Repeat texture horizontally
-                    loadedTexture.wrapT = THREE.RepeatWrapping; // Repeat texture vertically
-
-                    // Anisotropy ayarı (varsa renderer üzerinden)
-                    let maxAnisotropy = 16; // Varsayılan değer
-                    if (typeof appState !== 'undefined' && appState.renderer && appState.renderer.capabilities) {
-                        maxAnisotropy = appState.renderer.capabilities.getMaxAnisotropy();
-                    }
-                    loadedTexture.anisotropy = maxAnisotropy;
-                    loadedTexture.encoding = THREE.sRGBEncoding; // Renk doğruluğu için
-                    console.log(`MATERIALS.JS: ${materialProps.textureUrl} dokusu başarıyla yüklendi ve uygulandı. Texture object:`, loadedTexture);
-
-                    // Malzeme zaten oluşturulduysa ve doku sonradan yüklendiyse, malzemeyi güncelle
-                    if (finalMaterial && finalMaterial.map !== loadedTexture) {
-                        finalMaterial.map = loadedTexture;
-                        finalMaterial.needsUpdate = true; // Malzemenin güncellenmesi gerektiğini belirt
-                        console.log(`MATERIALS.JS: Malzeme (${materialName}) doku ile güncellendi.`);
-                    }
-                },
-                undefined, // onProgress callback (şimdilik kullanılmıyor)
-                function (errorEvent) { // onError callback
-                    console.error(`MATERIALS.JS: ${materialProps.textureUrl} dokusu yüklenirken XHR HATA OLUŞTU:`, errorEvent);
-                    console.error(`MATERIALS.JS: Lütfen '${materialProps.textureUrl}' dosyasının doğru yolda ('assets/textures/' altında) ve erişilebilir olduğundan emin olun veya çalışan bir online URL kullanın.`);
-                    // Doku yüklenemezse, malzemeyi sadece renk ile bırak veya bir hata rengi ata
-                    if (finalMaterial) {
-                        finalMaterial.map = null; // Doku yok
-                        // Hata durumunda kırmızı renk yerine malzemenin kendi rengini kullan:
-                        finalMaterial.color.setHex(materialProps.color);
-                        finalMaterial.needsUpdate = true;
-                        console.warn(`MATERIALS.JS: Doku yükleme hatası nedeniyle ${materialName} malzemesi kendi temel rengiyle (${materialProps.color.toString(16)}) ayarlandı.`);
-                    }
-                }
-            );
-
-            // Malzemeyi doku ile birlikte oluştur (doku yüklenmesi asenkron olabilir)
-            finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
-                map: texture, // Doku atanıyor
-                color: materialProps.color // Ana renk de atanıyor (doku yüklenene kadar veya doku ile karışması için)
-            }, settings));
-            finalMaterial.name = materialName + "_Material"; // Hata ayıklama için isimlendirme
-            console.log(`MATERIALS.JS: ${materialName} için MeshPhysicalMaterial oluşturuldu. Doku yüklenmesi bekleniyor...`);
-
-        } catch (e) {
-            console.error(`MATERIALS.JS: TextureLoader.load çağrılırken hata (bu genellikle olmaz):`, e);
-            // Beklenmedik bir hata durumunda fallback
-            finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
-                color: materialProps.color, // Hata durumunda da kendi rengini kullan
-            }, settings));
-            finalMaterial.name = materialName + "_ErrorMaterial";
-        }
-
-    } else {
-        // Doku URL'si yoksa, sadece renkli malzeme oluştur
-        console.warn(`MATERIALS.JS: ${materialName} için doku URL'si bulunamadı. Sadece renkli malzeme kullanılıyor.`);
-        finalMaterial = new THREE.MeshPhysicalMaterial(Object.assign({
-            color: materialProps.color
-        }, settings));
-        finalMaterial.name = materialName + "_ColorOnlyMaterial";
-    }
-
-    finalMaterial.needsUpdate = true; // İlk oluşturmada da güncelleme gerekebilir
     return finalMaterial;
 }
 
@@ -189,7 +121,8 @@ function getDarkerShade(color, factor = 0.8) {
 
 // Modülün dışa aktarılan fonksiyonları
 window.MaterialsModule = {
-    getMaterialProperties,
+    getMaterialColor,
+    getMaterialName,
     createMaterial,
     createMetalMaterial,
     getDarkerShade // Bu fonksiyon şu an aktif olarak kullanılmıyor olabilir ama API'de kalabilir.

@@ -458,6 +458,56 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* ACTION CONTROLS */
+.action-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+  background: rgba(110, 86, 207, 0.3);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
+.action-btn.downloading {
+  background: var(--accent-secondary);
+  border-color: var(--accent-secondary);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 /* CUSTOMIZATION PANEL */
 .customization-panel {
   display: flex;
@@ -559,14 +609,13 @@ body {
   z-index: 2; /* Overlay'in üzerinde */
 }
 
-/* Malzeme arka plan renkleri - Resimdeki renklere göre güncellendi */
-/* Bu renkler, doku yüklenemezse veya birincil renk tonu olarak kullanılır */
-.material-ceviz { background-color: #6A4F3B; } /* Ceviz - Koyu kahve */
-.material-mogano { background-color: #8C4A3C; } /* Maun - Kırmızımsı kahve */
-.material-mese { background-color: #C8B59A; } /* Meşe - Açık sarımsı kahve */
-.material-huş { background-color: #9A8C78; } /* Huş - Grimsi kahve */
-.material-ebene { background-color: #2A2B27; } /* Abanoz - Çok koyu, siyaha yakın */
-.material-geyik { background-color: #7C6F62; } /* Dişbudak - Koyu grimsi kahve */
+/* Her malzeme kendi renginde görünür */
+.material-ceviz { background-color: #654321; } /* Ceviz - Koyu kahve */
+.material-mogano { background-color: #B22222; } /* Maun - Kırmızı */
+.material-mese { background-color: #F4A460; } /* Meşe - Açık kahve */
+.material-hus { background-color: #FFE4B5; } /* Huş - Açık sarı */
+.material-ebene { background-color: #000000; } /* Abanoz - Siyah */
+.material-geyik { background-color: #808080; } /* Dişbudak - Gri */
 
 
 /* DIMENSION CONTROLS */
@@ -620,9 +669,13 @@ input[type="range"]::-webkit-slider-thumb {
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-input[type="range"]::-webkit-slider-thumb:hover,
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent-secondary); /* Hover topuz rengi */
+  transform: scale(1.2); /* Hafif büyüme */
+}
+
 input[type="range"]:active::-webkit-slider-thumb {
-  background: var(--accent-secondary); /* Aktif/hover topuz rengi */
+  background: var(--accent-secondary); /* Aktif topuz rengi */
   transform: scale(1.2); /* Hafif büyüme */
 }
 
@@ -779,6 +832,11 @@ input[type="range"]:active::-webkit-slider-thumb {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* SCROLL ANIMATIONS */
 .reveal { /* Kaydırma ile ortaya çıkan bölümler */
   opacity: 0;
@@ -862,7 +920,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   .zoom-control { flex-wrap: wrap; justify-content: center; }
   .zoom-slider-container { order: 3; width: 100%; margin-top: 0.5rem; } /* Zoom kaydırıcısı alta */
   .panel-section-title { font-size: 1rem; }
-  .control-btn, .view-btn, .zoom-btn { width: 36px; height: 36px; }
+  .control-btn, .view-btn, .zoom-btn { width: 44px; height: 44px; }
   .style-option-grid { grid-template-columns: 1fr; } /* Stil seçenekleri tek sütun */
   .feature-label { padding-left: 2.5rem; font-size: 0.9rem; }
   .feature-label::before { width: 16px; height: 16px; }

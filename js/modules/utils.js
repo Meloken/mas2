@@ -27,6 +27,25 @@ function throttle(func, limit) {
 }
 
 /**
+ * Debounce function to delay function execution until after wait time has elapsed.
+ * Useful for input events where you want to wait for user to stop typing/sliding.
+ * @param {Function} func - The function to debounce.
+ * @param {number} wait - The time to wait in milliseconds (e.g., 300ms).
+ * @returns {Function} A debounced version of the input function.
+ */
+function debounce(func, wait) {
+    var timeout;
+    return function() {
+        var context = this;
+        var args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+/**
  * Updates the price display in the UI based on selected options.
  * This function reads values directly from the DOM.
  */
@@ -96,6 +115,22 @@ function updateDimensionsLabel(width, length) {
 }
 
 /**
+ * Updates dimension value display with proper units (mm for thickness < 1cm, cm otherwise).
+ * @param {string} dimension - The dimension type ('width', 'length', 'height', 'thickness').
+ * @param {number} value - The dimension value.
+ */
+function updateDimensionDisplay(dimension, value) {
+    var valueDisplay = document.querySelector(`[data-dimension="${dimension}"] + .dimension-value`);
+    if (valueDisplay) {
+        if (dimension === 'thickness' && value < 1) {
+            valueDisplay.textContent = (value * 10).toFixed(0) + ' mm';
+        } else {
+            valueDisplay.textContent = value.toFixed(0) + ' cm';
+        }
+    }
+}
+
+/**
  * Initializes scroll reveal animations for elements with the '.reveal' class.
  * Elements become visible as they are scrolled into view.
  */
@@ -125,7 +160,9 @@ function initScrollReveal() {
 // Export the module's public API to the global window object
 window.UtilsModule = {
     throttle,
+    debounce,
     updatePricing,
     updateDimensionsLabel,
+    updateDimensionDisplay,
     initScrollReveal
 };
