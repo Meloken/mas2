@@ -116,26 +116,71 @@
             <div class="panel-section reveal">
                 <div class="panel-section-title">
                     <i class="fas fa-palette"></i>
-                    Malzeme Seçimi
+                    Renk Seçimi
                 </div>
-                <div class="material-grid" role="radiogroup" aria-label="Malzeme seçimi">
-                    <div class="material-item material-ceviz selected" role="radio" aria-checked="true" tabindex="0" aria-label="Ceviz malzemesi">
-                        <span>Ceviz</span>
+                <div class="color-picker-container">
+                    <div class="color-bar" role="radiogroup" aria-label="Renk seçimi">
+                        <div class="color-item selected" data-color="#654321" data-name="Koyu Kahverengi" style="background-color: #654321;" role="radio" aria-checked="true" tabindex="0" aria-label="Koyu Kahverengi" title="Koyu Kahverengi"></div>
+                        <div class="color-item" data-color="#B22222" data-name="Kırmızı" style="background-color: #B22222;" role="radio" aria-checked="false" tabindex="-1" aria-label="Kırmızı" title="Kırmızı"></div>
+                        <div class="color-item" data-color="#F4A460" data-name="Açık Kahverengi" style="background-color: #F4A460;" role="radio" aria-checked="false" tabindex="-1" aria-label="Açık Kahverengi" title="Açık Kahverengi"></div>
+                        <div class="color-item" data-color="#FFE4B5" data-name="Açık Sarı" style="background-color: #FFE4B5;" role="radio" aria-checked="false" tabindex="-1" aria-label="Açık Sarı" title="Açık Sarı"></div>
+                        <div class="color-item" data-color="#000000" data-name="Siyah" style="background-color: #000000;" role="radio" aria-checked="false" tabindex="-1" aria-label="Siyah" title="Siyah"></div>
+                        <div class="color-item" data-color="#808080" data-name="Gri" style="background-color: #808080;" role="radio" aria-checked="false" tabindex="-1" aria-label="Gri" title="Gri"></div>
+                        <div class="color-item" data-color="#8B4513" data-name="Saddle Brown" style="background-color: #8B4513;" role="radio" aria-checked="false" tabindex="-1" aria-label="Saddle Brown" title="Saddle Brown"></div>
+                        <div class="color-item" data-color="#A0522D" data-name="Sienna" style="background-color: #A0522D;" role="radio" aria-checked="false" tabindex="-1" aria-label="Sienna" title="Sienna"></div>
                     </div>
-                    <div class="material-item material-mogano" role="radio" aria-checked="false" tabindex="-1" aria-label="Maun malzemesi">
-                        <span>Maun</span>
-                    </div>
-                    <div class="material-item material-mese" role="radio" aria-checked="false" tabindex="-1" aria-label="Meşe malzemesi">
-                        <span>Meşe</span>
-                    </div>
-                    <div class="material-item material-hus" role="radio" aria-checked="false" tabindex="-1" aria-label="Huş malzemesi">
-                        <span>Huş</span>
-                    </div>
-                    <div class="material-item material-ebene" role="radio" aria-checked="false" tabindex="-1" aria-label="Abanoz malzemesi">
-                        <span>Abanoz</span>
-                    </div>
-                    <div class="material-item material-geyik" role="radio" aria-checked="false" tabindex="-1" aria-label="Dişbudak malzemesi">
-                        <span>Dişbudak</span>
+                </div>
+            </div>
+
+            <div class="panel-section reveal">
+                <div class="panel-section-title">
+                    <i class="fas fa-tree"></i>
+                    Malzeme Bilgisi
+                </div>
+                <div class="material-info-container">
+                    <div class="material-grid" role="radiogroup" aria-label="Malzeme bilgisi">
+                        <div class="material-info-item selected" data-material="ceviz" role="radio" aria-checked="true" tabindex="0" aria-label="Ceviz malzemesi">
+                            <div class="material-preview" style="background-color: #654321;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Ceviz</span>
+                                <span class="material-desc">Sert, dayanıklı</span>
+                            </div>
+                        </div>
+                        <div class="material-info-item" data-material="maun" role="radio" aria-checked="false" tabindex="-1" aria-label="Maun malzemesi">
+                            <div class="material-preview" style="background-color: #B22222;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Maun</span>
+                                <span class="material-desc">Lüks, kırmızımsı</span>
+                            </div>
+                        </div>
+                        <div class="material-info-item" data-material="mese" role="radio" aria-checked="false" tabindex="-1" aria-label="Meşe malzemesi">
+                            <div class="material-preview" style="background-color: #F4A460;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Meşe</span>
+                                <span class="material-desc">Klasik, güçlü</span>
+                            </div>
+                        </div>
+                        <div class="material-info-item" data-material="hus" role="radio" aria-checked="false" tabindex="-1" aria-label="Huş malzemesi">
+                            <div class="material-preview" style="background-color: #FFE4B5;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Huş</span>
+                                <span class="material-desc">Açık, modern</span>
+                            </div>
+                        </div>
+                        <div class="material-info-item" data-material="abanoz" role="radio" aria-checked="false" tabindex="-1" aria-label="Abanoz malzemesi">
+                            <div class="material-preview" style="background-color: #000000;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Abanoz</span>
+                                <span class="material-desc">Egzotik, koyu</span>
+                            </div>
+                        </div>
+                        <div class="material-info-item" data-material="disbudak" role="radio" aria-checked="false" tabindex="-1" aria-label="Dişbudak malzemesi">
+                            <div class="material-preview" style="background-color: #808080;"></div>
+                            <div class="material-details">
+                                <span class="material-name">Dişbudak</span>
+                                <span class="material-desc">Esnek, gri</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

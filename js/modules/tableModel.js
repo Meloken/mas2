@@ -48,9 +48,18 @@ function createTable(config, scene) {
 
     let topMaterial, legMaterial;
     try {
-        // Attempt to create materials using the MaterialsModule
-        console.log(`TABLEMODEL.JS: MaterialsModule.createMaterial çağrılıyor (Malzeme: ${config.material})`);
-        topMaterial = window.MaterialsModule.createMaterial(config.material);
+        // Eğer appState'de currentColor varsa onu kullan, yoksa eski sistemi kullan
+        if (window.appState && window.appState.currentColor) {
+            console.log("TABLEMODEL.JS: Renk tabanlı malzeme oluşturuluyor:", window.appState.currentColor, window.appState.currentColorName);
+            topMaterial = window.MaterialsModule.createMaterialFromColor(
+                window.appState.currentColor,
+                window.appState.currentColorName || 'Custom'
+            );
+        } else {
+            console.log(`TABLEMODEL.JS: MaterialsModule.createMaterial çağrılıyor (Malzeme: ${config.material})`);
+            topMaterial = window.MaterialsModule.createMaterial(config.material);
+        }
+
         console.log(`TABLEMODEL.JS: MaterialsModule.createMetalMaterial çağrılıyor`);
         legMaterial = window.MaterialsModule.createMetalMaterial(); // Default metal for legs
     } catch (e) {
@@ -521,7 +530,15 @@ function addShadowPlaneToScene(scene) {
 
 function updateModelHeader(currentMaterial, edgeStyle) {
     const edgeLabel = edgeStyle.charAt(0).toUpperCase() + edgeStyle.slice(1);
-    const materialLabel = window.MaterialsModule.getMaterialName(currentMaterial);
+
+    // Renk adını kullan, yoksa malzeme adını kullan
+    let materialLabel;
+    if (window.appState && window.appState.currentColorName) {
+        materialLabel = window.appState.currentColorName;
+    } else {
+        materialLabel = window.MaterialsModule.getMaterialName(currentMaterial);
+    }
+
     const headerElement = document.querySelector('.preview-header h3');
     if (headerElement) {
         headerElement.innerHTML =

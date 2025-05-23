@@ -10,7 +10,11 @@ var appState = {
     tableLength: 150,
     tableHeight: 75,
     tableThickness: 3, // Varsayılan kalınlık (cm) (Default thickness in cm)
-    currentMaterial: 'ceviz', // Mevcut malzeme (Current material)
+    currentMaterial: 'ceviz', // Mevcut malzeme (Current material) - geriye uyumluluk için
+    currentColor: '#654321', // Mevcut renk (Current color)
+    currentColorName: 'Koyu Kahverengi', // Mevcut renk adı (Current color name)
+    currentMaterialInfo: 'ceviz', // Seçili malzeme bilgisi (sadece info için)
+    currentMaterialName: 'Ceviz', // Seçili malzeme adı (sadece info için)
     edgeStyle: 'straight', // Kenar stili (Edge style)
     legStyle: 'standard', // Ayak stili ('standard', 'u-shape', 'x-shape', 'l-shape' olabilir) (Leg style)
     scene: null, // Three.js sahnesi (Three.js scene)
@@ -305,58 +309,84 @@ function animate() {
  * Initializes all UI event listeners
  */
 function initEventListeners() {
-    // Malzeme seçimi (Material selection) - Event delegation kullanarak
-    const materialGrid = document.querySelector('.material-grid');
-    if (materialGrid) {
-        materialGrid.addEventListener('click', function(event) {
-            console.log("MAIN.JS: Material grid'e tıklandı, event target:", event.target);
-
-            // Tıklanan element'i veya en yakın .material-item'ı bul
-            let clickedItem = event.target.closest('.material-item');
-            console.log("MAIN.JS: Bulunan material item:", clickedItem);
+    // Renk seçimi (Color selection) - Event delegation kullanarak
+    const colorBar = document.querySelector('.color-bar');
+    if (colorBar) {
+        colorBar.addEventListener('click', function(event) {
+            // Tıklanan element'i veya en yakın .color-item'ı bul
+            let clickedItem = event.target.closest('.color-item');
 
             if (!clickedItem) {
-                console.log("MAIN.JS: Material item bulunamadı");
                 return;
             }
 
-            console.log("MAIN.JS: Tıklanan item HTML:", clickedItem.outerHTML);
-
             // Önceki seçimi kaldır (Remove previous selection)
-            document.querySelectorAll('.material-item').forEach(function(i) {
+            document.querySelectorAll('.color-item').forEach(function(i) {
                 i.classList.remove('selected');
+                i.setAttribute('aria-checked', 'false');
+                i.setAttribute('tabindex', '-1');
             });
+
             // Yeni öğeyi seç (Select the new item)
             clickedItem.classList.add('selected');
+            clickedItem.setAttribute('aria-checked', 'true');
+            clickedItem.setAttribute('tabindex', '0');
 
-            // Malzeme türünü al (Get material type from class)
-            var classes = Array.from(clickedItem.classList);
-            console.log("MAIN.JS: Item class'ları:", classes);
+            // Seçilen rengi al
+            const selectedColor = clickedItem.getAttribute('data-color');
+            const colorName = clickedItem.getAttribute('data-name');
 
-            var foundMaterial = null;
-            for (const className of classes) {
-                console.log("MAIN.JS: Kontrol edilen class:", className);
-                if (className.startsWith('material-')) {
-                    foundMaterial = className.replace('material-', '');
-                    console.log("MAIN.JS: Bulunan malzeme:", foundMaterial);
-                    appState.currentMaterial = foundMaterial;
-                    break;
-                }
+            if (selectedColor) {
+                // appState'e renk bilgisini kaydet
+                appState.currentColor = selectedColor;
+                appState.currentColorName = colorName;
+
+                console.log("MAIN.JS: ✅ Renk seçildi:", colorName, "->", selectedColor);
+
+                // Masa modelini güncelle
+                updateTableModel();
+                if (window.UtilsModule) window.UtilsModule.updatePricing();
+            }
+        });
+    }
+
+    // Malzeme bilgi seçimi (Material info selection) - Sadece bilgi amaçlı
+    const materialGrid = document.querySelector('.material-grid');
+    if (materialGrid) {
+        materialGrid.addEventListener('click', function(event) {
+            // Tıklanan element'i veya en yakın .material-info-item'ı bul
+            let clickedItem = event.target.closest('.material-info-item');
+
+            if (!clickedItem) {
+                return;
             }
 
-            if (!foundMaterial) {
-                console.error("MAIN.JS: Malzeme class'ı bulunamadı! Classes:", classes);
-                // Fallback olarak varsayılan malzeme kullan
-                appState.currentMaterial = 'ceviz';
-            } else {
-                console.log("MAIN.JS: ✅ Malzeme başarıyla değiştirildi:", foundMaterial);
-                console.log("MAIN.JS: ✅ appState.currentMaterial:", appState.currentMaterial);
-            }
+            // Önceki seçimi kaldır (Remove previous selection)
+            document.querySelectorAll('.material-info-item').forEach(function(i) {
+                i.classList.remove('selected');
+                i.setAttribute('aria-checked', 'false');
+                i.setAttribute('tabindex', '-1');
+            });
 
-            // Masa modelini ve fiyatlandırmayı güncelle (Update table model and pricing)
-            console.log("MAIN.JS: updateTableModel çağrılıyor...");
-            updateTableModel();
-            if (window.UtilsModule) window.UtilsModule.updatePricing();
+            // Yeni öğeyi seç (Select the new item)
+            clickedItem.classList.add('selected');
+            clickedItem.setAttribute('aria-checked', 'true');
+            clickedItem.setAttribute('tabindex', '0');
+
+            // Seçilen malzeme bilgisini al
+            const selectedMaterial = clickedItem.getAttribute('data-material');
+            const materialName = clickedItem.querySelector('.material-name').textContent;
+
+            if (selectedMaterial) {
+                // appState'e malzeme bilgisini kaydet (sadece bilgi amaçlı)
+                appState.currentMaterialInfo = selectedMaterial;
+                appState.currentMaterialName = materialName;
+
+                console.log("MAIN.JS: ℹ️ Malzeme bilgisi seçildi:", materialName, "->", selectedMaterial);
+
+                // Not: Masa modelini güncelleme - sadece bilgi amaçlı
+                // updateTableModel(); // Bu satır kapalı - sadece bilgi gösterimi
+            }
         });
     }
 

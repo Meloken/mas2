@@ -59,8 +59,36 @@ function getMaterialName(materialName) {
 }
 
 /**
- * Belirtilen ada sahip bir Three.js malzemesi oluşturur.
- * Sadece renk kodları kullanır, texture kullanmaz.
+ * Belirtilen renk kodu ile Three.js malzemesi oluşturur.
+ * @param {string} colorHex - Hex renk kodu (örn: '#654321').
+ * @param {string} [colorName] - Renk adı (opsiyonel).
+ * @param {object} [options={}] - Ek malzeme seçenekleri.
+ * @returns {THREE.MeshStandardMaterial} Oluşturulan malzeme.
+ */
+function createMaterialFromColor(colorHex, colorName = 'Custom', options = {}) {
+    // Hex renk kodunu temizle
+    const cleanColor = colorHex.replace('#', '');
+    const colorValue = parseInt(cleanColor, 16);
+
+    // Sadece renk kodları kullanarak malzeme oluştur
+    const materialSettings = {
+        color: new THREE.Color(colorValue), // THREE.Color kullan
+        roughness: 0.65,
+        metalness: 0.0,
+        map: null, // Texture kullanma
+        ...options // Ek seçenekleri uygula
+    };
+
+    const finalMaterial = new THREE.MeshStandardMaterial(materialSettings);
+    finalMaterial.name = colorName.replace(/\s+/g, '') + "_ColorMaterial";
+
+    console.log(`MATERIALS.JS: ${colorName} malzemesi oluşturuldu (renk: ${colorHex}).`);
+
+    return finalMaterial;
+}
+
+/**
+ * Geriye uyumluluk için eski createMaterial fonksiyonu
  * @param {string} materialName - Oluşturulacak malzemenin adı.
  * @param {object} [options={}] - Ek malzeme seçenekleri.
  * @returns {THREE.MeshStandardMaterial} Oluşturulan malzeme.
@@ -124,6 +152,7 @@ window.MaterialsModule = {
     getMaterialColor,
     getMaterialName,
     createMaterial,
+    createMaterialFromColor,
     createMetalMaterial,
     getDarkerShade // Bu fonksiyon şu an aktif olarak kullanılmıyor olabilir ama API'de kalabilir.
 };
