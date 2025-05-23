@@ -36,9 +36,30 @@
     <main id="customizer" class="container">
         <div class="preview-container animate-in">
             <div class="preview-window">
-                <div class="preview-header">
-                    <h3>Masa Önizleme</h3>
-                    <span class="dimensions-badge">109×150 cm</span>
+                <!-- Üst Kontrol Barı -->
+                <div class="top-control-bar">
+                    <div class="top-controls-left">
+                        <div class="model-info">
+                            <h3 id="model-title">Masa Önizleme</h3>
+                            <span id="model-subtitle">109×150 cm</span>
+                        </div>
+                    </div>
+
+                    <div class="top-controls-center">
+                        <!-- Orta kısım boş - gelecekte ek kontroller için -->
+                    </div>
+
+                    <div class="top-controls-right">
+                        <!-- Ana Kontrol Butonları - Sağ -->
+                        <div class="main-action-controls">
+                            <button class="action-btn" id="playPauseBtn" title="Otomatik Döndürme">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="action-btn" id="downloadBtn" title="Anlık İndir">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="table-3d-container">
@@ -59,20 +80,8 @@
                                 <i class="fas fa-sync-alt"></i>
                             </button>
 
-                            <div class="control-divider"></div>
 
-                            <button class="control-btn" data-rotate="left" title="Sola Döndür">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
-                            <button class="control-btn" data-rotate="right" title="Sağa Döndür">
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                            <button class="control-btn" data-rotate="up" title="Yukarı Döndür">
-                                <i class="fas fa-arrow-up"></i>
-                            </button>
-                            <button class="control-btn" data-rotate="down" title="Aşağı Döndür">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
+
                         </div>
 
                         <div class="view-group">
@@ -100,14 +109,7 @@
                         </button>
                     </div>
 
-                    <div class="action-controls">
-                        <button class="action-btn" id="playPauseBtn" title="Otomatik Döndürme">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="action-btn" id="downloadBtn" title="Anlık İndirme">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
+
                 </div>
             </div>
         </div>

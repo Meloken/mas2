@@ -55,7 +55,7 @@ function initUIControls() {
 }
 
 /**
- * Initializes the rotation control buttons.
+ * Initializes the rotation control buttons (only reset button now).
  * @private
  */
 function initRotationControls() {
@@ -66,21 +66,10 @@ function initRotationControls() {
             if (!controls) return; // Ensure controls are initialized
 
             switch (direction) {
-                case 'left':
-                    rotateTable(-0.3, 0); // Rotate left (negative Y-axis rotation in OrbitControls)
-                    break;
-                case 'right':
-                    rotateTable(0.3, 0); // Rotate right
-                    break;
-                case 'up':
-                    rotateTable(0, -0.2); // Rotate up (negative X-axis rotation in OrbitControls)
-                    break;
-                case 'down':
-                    rotateTable(0, 0.2); // Rotate down
-                    break;
                 case 'reset':
                     resetTableView(); // Reset to default view
                     break;
+                // Removed left, right, up, down cases - arrow buttons removed from UI
             }
         });
     });
@@ -172,18 +161,7 @@ function updateZoom() {
 }
 
 
-/**
- * Rotates the table view by the specified amounts using OrbitControls methods.
- * @param {number} deltaY - Rotation amount around the Y-axis (controls.rotateLeft).
- * @param {number} deltaX - Rotation amount around the X-axis (controls.rotateUp).
- */
-function rotateTable(deltaY, deltaX) {
-    if (!controls) return;
-
-    controls.rotateLeft(deltaY); // Corresponds to horizontal rotation
-    controls.rotateUp(deltaX);   // Corresponds to vertical rotation
-    controls.update(); // Apply changes
-}
+// rotateTable function removed - arrow buttons no longer exist in UI
 
 /**
  * Resets the table view to the default perspective.
