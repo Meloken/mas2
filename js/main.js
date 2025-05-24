@@ -212,6 +212,20 @@ function updateTableModel() {
     if (window.UtilsModule) {
         window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
     }
+
+    // Ölçü etiketlerini güncelle (Update dimension labels on canvas)
+    if (window.DimensionLabelsModule) {
+        window.DimensionLabelsModule.updateDimensionLabels(appState.scene, {
+            width: appState.tableWidth,
+            length: appState.tableLength,
+            height: appState.tableHeight
+        });
+
+        // Kamera referansını ayarla
+        if (appState.camera) {
+            window.DimensionLabelsModule.setCamera(appState.camera);
+        }
+    }
 }
 
 /**
@@ -296,6 +310,11 @@ function animate() {
     // Kontrolleri güncelle
     if (appState.controls) {
         appState.controls.update();
+    }
+
+    // Ölçü etiketlerini kameraya yönlendir (her frame'de)
+    if (window.DimensionLabelsModule && appState.camera) {
+        window.DimensionLabelsModule.updateLabelOrientations(appState.camera);
     }
 
     // Sahneyi render et
@@ -477,6 +496,15 @@ function initEventListeners() {
                 window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
             }
 
+            // Anlık ölçü etiketlerini güncelle (Update dimension labels instantly)
+            if (window.DimensionLabelsModule) {
+                window.DimensionLabelsModule.updateDimensionLabels(appState.scene, {
+                    width: appState.tableWidth,
+                    length: appState.tableLength,
+                    height: appState.tableHeight
+                });
+            }
+
             // Use both throttled (immediate) and debounced (final) updates
             throttledModelUpdate(); // Immediate response while sliding
             debouncedModelUpdate(); // Final update when sliding stops
@@ -572,6 +600,39 @@ function initEventListeners() {
     if (downloadBtn) {
         downloadBtn.addEventListener('click', downloadScreenshot);
     }
+
+    // Ölçü gösterme/gizleme butonu
+    const dimensionsBtn = document.getElementById('dimensionsBtn');
+    if (dimensionsBtn) {
+        dimensionsBtn.addEventListener('click', function() {
+            const isActive = dimensionsBtn.classList.contains('active');
+
+            if (isActive) {
+                // Ölçüleri gizle
+                dimensionsBtn.classList.remove('active');
+                dimensionsBtn.title = 'Ölçüleri Göster';
+                if (window.DimensionLabelsModule) {
+                    window.DimensionLabelsModule.toggleDimensionLabels(false, appState.scene);
+                }
+            } else {
+                // Ölçüleri göster
+                dimensionsBtn.classList.add('active');
+                dimensionsBtn.title = 'Ölçüleri Gizle';
+                if (window.DimensionLabelsModule) {
+                    window.DimensionLabelsModule.toggleDimensionLabels(true, appState.scene, {
+                        width: appState.tableWidth,
+                        length: appState.tableLength,
+                        height: appState.tableHeight
+                    });
+
+                    // Kamera referansını ayarla
+                    if (appState.camera) {
+                        window.DimensionLabelsModule.setCamera(appState.camera);
+                    }
+                }
+            }
+        });
+    }
 }
 
 /**
@@ -611,4 +672,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Kaydırma ortaya çıkarma animasyonlarını ve fiyatlandırmayı başlat (Initialize scroll reveal animations and pricing)
     window.UtilsModule.initScrollReveal();
     window.UtilsModule.updatePricing();
+
+    // İlk yüklemede ölçüleri göster (Show dimensions on initial load)
+    setTimeout(function() {
+        if (window.DimensionLabelsModule && appState.scene && appState.camera) {
+            window.DimensionLabelsModule.createDimensionLabels(appState.scene, {
+                width: appState.tableWidth,
+                length: appState.tableLength,
+                height: appState.tableHeight
+            }, appState.camera);
+        }
+    }, 2000); // Masa modeli yüklendikten sonra ölçüleri göster
 });
