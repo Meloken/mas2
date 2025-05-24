@@ -16,6 +16,13 @@ let lineMeshes = {
 };
 let currentCamera = null; // Kamera referansı
 
+// X-Y-Z Eksen Renk Kodlaması (3D Standart)
+const AXIS_COLORS = {
+    X: 0xFF4444,  // Kırmızı - Genişlik (Width)
+    Y: 0x228B22,  // Koyu Yeşil - Yükseklik (Height)
+    Z: 0x4444FF   // Mavi - Uzunluk (Length/Depth)
+};
+
 /**
  * Ölçü etiketlerini oluşturur ve sahneye ekler
  * @param {THREE.Scene} scene - Three.js sahnesi
@@ -56,10 +63,10 @@ function createWidthDimension(width, length, height, widthCm) {
     const lineHeight = Math.max(0.01, width * 0.02); // Orantılı çizgi kalınlığı
     const endLineLength = Math.max(0.03, width * 0.08); // Orantılı uç çizgi uzunluğu
 
-    // Ana ölçü çizgisi (masa üstünde, ön kenar) - masa genişliği kadar
+    // Ana ölçü çizgisi (masa üstünde, ön kenar) - masa genişliği kadar - X EKSENİ (KIRMIZI)
     const lineGeometry = new THREE.BoxGeometry(width, lineHeight, 0.005);
     const lineMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6E56CF,
+        color: AXIS_COLORS.X, // Kırmızı - X ekseni
         transparent: true,
         opacity: 0.9
     });
@@ -80,9 +87,9 @@ function createWidthDimension(width, length, height, widthCm) {
     lineMeshes.width.rightEnd = rightEndLine; // Referansı sakla
     dimensionGroup.add(rightEndLine);
 
-    // Boyut etiketi - masa boyutuna orantılı
+    // Boyut etiketi - masa boyutuna orantılı - X EKSENİ (KIRMIZI)
     const labelSize = Math.max(0.08, width * 0.08);
-    const label = createTextLabel(`${widthCm} cm`, labelSize);
+    const label = createTextLabel(`${widthCm} cm`, labelSize, 'X');
     label.position.set(0, height + 0.08, -length/2 - offset);
     labelMeshes.width = label; // Referansı sakla
     dimensionGroup.add(label);
@@ -96,10 +103,10 @@ function createLengthDimension(width, length, height, lengthCm) {
     const lineHeight = Math.max(0.01, length * 0.015); // Orantılı çizgi kalınlığı
     const endLineLength = Math.max(0.03, length * 0.06); // Orantılı uç çizgi uzunluğu
 
-    // Ana ölçü çizgisi (masa üstünde, sağ kenar) - masa uzunluğu kadar
+    // Ana ölçü çizgisi (masa üstünde, sağ kenar) - masa uzunluğu kadar - Z EKSENİ (MAVİ)
     const lineGeometry = new THREE.BoxGeometry(0.005, lineHeight, length);
     const lineMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6E56CF,
+        color: AXIS_COLORS.Z, // Mavi - Z ekseni
         transparent: true,
         opacity: 0.9
     });
@@ -120,9 +127,9 @@ function createLengthDimension(width, length, height, lengthCm) {
     lineMeshes.length.backEnd = backEndLine; // Referansı sakla
     dimensionGroup.add(backEndLine);
 
-    // Boyut etiketi - masa boyutuna orantılı
+    // Boyut etiketi - masa boyutuna orantılı - Z EKSENİ (MAVİ)
     const labelSize = Math.max(0.08, length * 0.06);
-    const label = createTextLabel(`${lengthCm} cm`, labelSize);
+    const label = createTextLabel(`${lengthCm} cm`, labelSize, 'Z');
     label.position.set(width/2 + offset + 0.08, height + 0.08, 0);
     labelMeshes.length = label; // Referansı sakla
     dimensionGroup.add(label);
@@ -136,10 +143,10 @@ function createHeightDimension(width, length, height, heightCm) {
     const lineThickness = Math.max(0.01, height * 0.02); // Orantılı çizgi kalınlığı
     const endLineLength = Math.max(0.03, height * 0.08); // Orantılı uç çizgi uzunluğu
 
-    // Ana ölçü çizgisi (dikey, masa yanında) - masa yüksekliği kadar
+    // Ana ölçü çizgisi (dikey, masa yanında) - masa yüksekliği kadar - Y EKSENİ (YEŞİL)
     const lineGeometry = new THREE.BoxGeometry(0.005, height, lineThickness);
     const lineMaterial = new THREE.MeshBasicMaterial({
-        color: 0x6E56CF,
+        color: AXIS_COLORS.Y, // Yeşil - Y ekseni
         transparent: true,
         opacity: 0.9
     });
@@ -160,9 +167,9 @@ function createHeightDimension(width, length, height, heightCm) {
     lineMeshes.height.topEnd = topEndLine; // Referansı sakla
     dimensionGroup.add(topEndLine);
 
-    // Boyut etiketi - masa boyutuna orantılı
+    // Boyut etiketi - masa boyutuna orantılı - Y EKSENİ (YEŞİL)
     const labelSize = Math.max(0.08, height * 0.12);
-    const label = createTextLabel(`${heightCm} cm`, labelSize);
+    const label = createTextLabel(`${heightCm} cm`, labelSize, 'Y');
     label.position.set(-width/2 - offset - 0.08, height/2, -length/2 - offset);
     labelMeshes.height = label; // Referansı sakla
     dimensionGroup.add(label);
@@ -172,9 +179,10 @@ function createHeightDimension(width, length, height, heightCm) {
  * Metin etiketi oluşturur
  * @param {string} text - Gösterilecek metin
  * @param {number} size - Metin boyutu
+ * @param {string} axis - Eksen tipi ('X', 'Y', 'Z')
  * @returns {THREE.Mesh} Metin mesh'i
  */
-function createTextLabel(text, size = 0.15) {
+function createTextLabel(text, size = 0.15, axis = null) {
     // Canvas ile metin oluştur
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -183,17 +191,23 @@ function createTextLabel(text, size = 0.15) {
     canvas.width = 720;
     canvas.height = 180;
 
+    // Eksen rengini belirle
+    let axisColor = '#6E56CF'; // Varsayılan mor
+    if (axis === 'X') axisColor = '#FF4444'; // Kırmızı
+    else if (axis === 'Y') axisColor = '#228B22'; // Koyu Yeşil
+    else if (axis === 'Z') axisColor = '#4444FF'; // Mavi
+
     // Arka plan - beyaz, hafif şeffaf
     context.fillStyle = 'rgba(255, 255, 255, 0.95)';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Border - mor çerçeve
-    context.strokeStyle = '#6E56CF';
+    // Border - eksen renginde çerçeve
+    context.strokeStyle = axisColor;
     context.lineWidth = 6;
     context.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
 
-    // Metin stili - %50 daha büyük
-    context.fillStyle = '#6E56CF';
+    // Metin stili - eksen renginde
+    context.fillStyle = axisColor;
     context.font = 'bold 63px Arial';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
@@ -292,19 +306,19 @@ function updateDimensionLabels(scene, dimensions) {
 function updateLabelTexts() {
     if (!dimensionGroup || !isLabelsVisible) return;
 
-    // Genişlik etiketi güncelle
+    // Genişlik etiketi güncelle - X EKSENİ (KIRMIZI)
     if (labelMeshes.width) {
-        updateSingleLabel(labelMeshes.width, `${currentDimensions.width} cm`);
+        updateSingleLabel(labelMeshes.width, `${currentDimensions.width} cm`, 'X');
     }
 
-    // Uzunluk etiketi güncelle
+    // Uzunluk etiketi güncelle - Z EKSENİ (MAVİ)
     if (labelMeshes.length) {
-        updateSingleLabel(labelMeshes.length, `${currentDimensions.length} cm`);
+        updateSingleLabel(labelMeshes.length, `${currentDimensions.length} cm`, 'Z');
     }
 
-    // Yükseklik etiketi güncelle
+    // Yükseklik etiketi güncelle - Y EKSENİ (YEŞİL)
     if (labelMeshes.height) {
-        updateSingleLabel(labelMeshes.height, `${currentDimensions.height} cm`);
+        updateSingleLabel(labelMeshes.height, `${currentDimensions.height} cm`, 'Y');
     }
 }
 
@@ -312,8 +326,9 @@ function updateLabelTexts() {
  * Tek bir etiketin metnini günceller
  * @param {THREE.Mesh} labelMesh - Güncellenecek etiket mesh'i
  * @param {string} newText - Yeni metin
+ * @param {string} axis - Eksen tipi ('X', 'Y', 'Z')
  */
-function updateSingleLabel(labelMesh, newText) {
+function updateSingleLabel(labelMesh, newText, axis = null) {
     if (!labelMesh || !labelMesh.material || !labelMesh.material.map) return;
 
     // Mevcut canvas'ı al
@@ -323,17 +338,23 @@ function updateSingleLabel(labelMesh, newText) {
     // Canvas'ı temizle
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Eksen rengini belirle
+    let axisColor = '#6E56CF'; // Varsayılan mor
+    if (axis === 'X') axisColor = '#FF4444'; // Kırmızı
+    else if (axis === 'Y') axisColor = '#228B22'; // Koyu Yeşil
+    else if (axis === 'Z') axisColor = '#4444FF'; // Mavi
+
     // Arka plan - beyaz, hafif şeffaf
     context.fillStyle = 'rgba(255, 255, 255, 0.95)';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Border - mor çerçeve
-    context.strokeStyle = '#6E56CF';
+    // Border - eksen renginde çerçeve
+    context.strokeStyle = axisColor;
     context.lineWidth = 6;
     context.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
 
-    // Yeni metni çiz - %50 daha büyük
-    context.fillStyle = '#6E56CF';
+    // Yeni metni çiz - eksen renginde
+    context.fillStyle = axisColor;
     context.font = 'bold 63px Arial';
     context.textAlign = 'center';
     context.textBaseline = 'middle';

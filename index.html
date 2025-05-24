@@ -198,28 +198,40 @@
                         <div class="range-slider">
                             <input type="range" id="width-slider" min="80" max="180" value="109" data-dimension="width" aria-label="Masa genişliği" aria-describedby="width-value">
                         </div>
-                        <span class="dimension-value" id="width-value">109 cm</span>
+                        <div class="dimension-value-container">
+                            <input type="number" class="dimension-input" id="width-input" min="80" max="180" value="109" data-dimension="width" aria-label="Genişlik değeri">
+                            <span class="dimension-unit">cm</span>
+                        </div>
                     </div>
                     <div class="dimension-row" data-dimension="length">
                         <span class="dimension-label">Uzunluk</span>
                         <div class="range-slider">
-                            <input type="range" min="100" max="240" value="150" data-dimension="length">
+                            <input type="range" id="length-slider" min="100" max="240" value="150" data-dimension="length">
                         </div>
-                        <span class="dimension-value">150 cm</span>
+                        <div class="dimension-value-container">
+                            <input type="number" class="dimension-input" id="length-input" min="100" max="240" value="150" data-dimension="length" aria-label="Uzunluk değeri">
+                            <span class="dimension-unit">cm</span>
+                        </div>
                     </div>
                     <div class="dimension-row" data-dimension="height">
                         <span class="dimension-label">Yükseklik</span>
                         <div class="range-slider">
-                            <input type="range" min="65" max="85" value="75" data-dimension="height">
+                            <input type="range" id="height-slider" min="65" max="85" value="75" data-dimension="height">
                         </div>
-                        <span class="dimension-value">75 cm</span>
+                        <div class="dimension-value-container">
+                            <input type="number" class="dimension-input" id="height-input" min="65" max="85" value="75" data-dimension="height" aria-label="Yükseklik değeri">
+                            <span class="dimension-unit">cm</span>
+                        </div>
                     </div>
                     <div class="dimension-row" data-dimension="thickness">
                         <span class="dimension-label">Yüzey Kalınlığı</span>
                         <div class="range-slider">
-                            <input type="range" min="0.3" max="5" step="0.1" value="3" data-dimension="thickness">
+                            <input type="range" id="thickness-slider" min="0.3" max="5" step="0.1" value="3" data-dimension="thickness">
                         </div>
-                        <span class="dimension-value">3 cm</span>
+                        <div class="dimension-value-container">
+                            <input type="number" class="dimension-input" id="thickness-input" min="0.3" max="5" step="0.1" value="3" data-dimension="thickness" aria-label="Kalınlık değeri">
+                            <span class="dimension-unit">cm</span>
+                        </div>
                     </div>
                 </div>
             </div>

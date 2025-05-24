@@ -409,8 +409,8 @@ function initEventListeners() {
         });
     }
 
-    // Boyut kaydırıcıları (Dimension sliders)
-    document.querySelectorAll('input[type="range"]').forEach(function(slider) {
+    // Boyut kaydırıcıları ve manuel input'lar (Dimension sliders and manual inputs)
+    document.querySelectorAll('input[type="range"], input[type="number"].dimension-input').forEach(function(input) {
         // Throttled function for immediate model updates during sliding
         var throttledModelUpdate = window.UtilsModule.throttle(function() {
             updateTableModel();
@@ -427,13 +427,13 @@ function initEventListeners() {
         }, 300);
 
         // Function to handle dimension updates
-        function handleDimensionUpdate() {
-            var dimension = slider.dataset.dimension;
-            var value = parseFloat(slider.value);
+        function handleDimensionUpdate(sourceInput) {
+            var dimension = sourceInput.dataset.dimension;
+            var value = parseFloat(sourceInput.value);
 
             // Input validation
             if (isNaN(value)) {
-                console.warn(`Invalid value for ${dimension}: ${slider.value}`);
+                console.warn(`Invalid value for ${dimension}: ${sourceInput.value}`);
                 return;
             }
 
@@ -470,17 +470,32 @@ function initEventListeners() {
 
             if (!isValid) {
                 console.warn(`Validation failed for ${dimension}: ${errorMessage}`);
+                // Visual feedback for invalid input
+                if (sourceInput.type === 'number') {
+                    sourceInput.classList.add('invalid');
+                    setTimeout(() => sourceInput.classList.remove('invalid'), 1000);
+                }
                 return;
             }
 
-            // Update UI immediately (no debouncing for UI updates)
-            var valueDisplay = slider.closest('.dimension-row').querySelector('.dimension-value');
-            if (valueDisplay) {
-                if (dimension === 'thickness' && value < 1) {
-                    valueDisplay.textContent = (value * 10).toFixed(0) + ' mm';
-                } else {
-                    valueDisplay.textContent = value.toFixed(0) + ' cm';
-                }
+            // Visual feedback for valid input
+            if (sourceInput.type === 'number') {
+                sourceInput.classList.remove('invalid');
+                sourceInput.classList.add('valid');
+                setTimeout(() => sourceInput.classList.remove('valid'), 500);
+            }
+
+            // Sync between slider and input
+            var dimensionRow = sourceInput.closest('.dimension-row');
+            var slider = dimensionRow.querySelector('input[type="range"]');
+            var numberInput = dimensionRow.querySelector('input[type="number"]');
+
+            if (sourceInput.type === 'range' && numberInput) {
+                // Slider değişti, input'u güncelle
+                numberInput.value = value;
+            } else if (sourceInput.type === 'number' && slider) {
+                // Input değişti, slider'ı güncelle
+                slider.value = value;
             }
 
             // Update app state immediately
@@ -511,9 +526,34 @@ function initEventListeners() {
             debouncedPricingUpdate();
         }
 
-        // Add both input and change event listeners for immediate response
-        slider.addEventListener('input', handleDimensionUpdate);
-        slider.addEventListener('change', handleDimensionUpdate);
+        // Add event listeners based on input type
+        if (input.type === 'range') {
+            // Slider events
+            input.addEventListener('input', function() {
+                handleDimensionUpdate(input);
+            });
+            input.addEventListener('change', function() {
+                handleDimensionUpdate(input);
+            });
+        } else if (input.type === 'number') {
+            // Number input events
+            input.addEventListener('input', function() {
+                handleDimensionUpdate(input);
+            });
+            input.addEventListener('change', function() {
+                handleDimensionUpdate(input);
+            });
+            input.addEventListener('blur', function() {
+                handleDimensionUpdate(input);
+            });
+
+            // Enter key support
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    input.blur(); // Trigger blur event
+                }
+            });
+        }
     });
 
     // Stil seçenekleri (Edge and Leg style options)
