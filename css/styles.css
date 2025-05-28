@@ -219,6 +219,14 @@ body {
   margin: 0 auto; /* Ortala */
   min-height: 100vh;
   width: 100%; /* Tam genişlik kullan */
+  padding-top: 2rem; /* Add some space below a potentially fixed header in future */
+}
+
+.customization-panel {
+  border: 1px solid var(--glass-border); /* More distinct border */
+  border-radius: 15px; /* Consistent with preview-container */
+  padding: 1.5rem; /* Add more internal padding */
+  background: rgba(30, 30, 36, 0.6); /* Slightly more opaque for better readability */
 }
 
 @media (max-width: 1400px) { /* Geniş layout için breakpoint */
@@ -588,24 +596,30 @@ body {
 }
 
 .panel-section {
-  background: var(--glass-bg);
-  padding: 0.8rem;
-  border-radius: 12px;
+  background: var(--glass-bg); /* Original glass-bg is quite transparent */
+  background: rgba(40, 40, 48, 0.75); /* Darker, slightly more opaque for better contrast */
+  padding: 1rem; /* Increased padding */
+  border-radius: 10px; /* Slightly smaller radius for internal sections */
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px); /* Slightly less blur if bg is more opaque */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden; /* İçerik taşma kontrolü */
+  margin-bottom: 1rem; /* Add space between panel sections */
 }
+.panel-section:last-of-type {
+  margin-bottom: 0;
+}
+
 
 .panel-section:hover {
   transform: translateY(-5px); /* Hover'da hafif yukarı */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Increased shadow for pop */
 }
 
 .panel-section-title {
-  font-size: 0.9rem; /* Daha küçük başlık */
-  font-weight: 600;
-  margin-bottom: 0.6rem; /* Daha az margin */
+  font-size: 1.1rem; /* Larger title */
+  font-weight: 700; /* Bolder title */
+  margin-bottom: 1rem; /* Increased margin */
   display: flex;
   align-items: center;
   gap: 0.4rem; /* Daha az gap */
@@ -618,12 +632,12 @@ body {
 .material-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); /* Daha kompakt grid */
-  gap: 0.5rem; /* Daha az gap */
+  gap: 0.8rem; /* Increased gap */
 }
 
 .material-item {
   aspect-ratio: 1; /* Kare görünüm */
-  border-radius: 10px;
+  border-radius: 8px; /* Consistent with other items */
   position: relative;
   cursor: pointer;
   overflow: hidden;
@@ -689,32 +703,32 @@ body {
 
 .color-bar {
   display: flex;
-  gap: 0.3rem; /* Daha az gap */
+  gap: 0.5rem; /* Increased gap */
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start; /* Align to start */
 }
 
 .color-item {
-  width: 30px; /* Daha küçük renk seçici */
-  height: 30px;
+  width: 32px; 
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent; /* Daha ince border */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 3px solid transparent; /* Thicker border for selection state */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
 .color-item:hover {
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.15); /* More pronounced hover */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .color-item.selected {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 15px rgba(110, 86, 207, 0.4);
-  transform: translateY(-1px) scale(1.05);
+  border-color: var(--accent-secondary); /* Use secondary accent for selected border */
+  box-shadow: 0 0 0 3px var(--accent-secondary), 0 5px 15px rgba(192, 132, 252, 0.5); /* Brighter shadow */
+  transform: scale(1.1); /* Slightly larger when selected */
 }
 
 /* MATERIAL INFO */
@@ -725,14 +739,14 @@ body {
 .material-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
+  gap: 0.8rem; /* Increased gap */
 }
 
 .material-info-item {
-  background: var(--bg-primary);
-  border: 2px solid transparent;
-  border-radius: 8px; /* Daha küçük border radius */
-  padding: 0.5rem; /* Daha az padding */
+  background: var(--bg-secondary); /* Darker background for items */
+  border: 2px solid var(--glass-border); /* Consistent border */
+  border-radius: 8px; 
+  padding: 0.8rem; /* Increased padding */
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -784,19 +798,20 @@ body {
 .dimensions-control {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem; /* Increased gap */
   overflow: hidden; /* Taşma kontrolü */
 }
 
 .dimension-row {
   display: grid;
-  grid-template-columns: 80px 1fr 90px; /* Input alanı için daha geniş */
+  grid-template-columns: 90px 1fr auto; /* Adjusted for clarity */
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.8rem; /* Increased gap */
+  padding: 0.3rem 0; /* Add some vertical padding to each row */
 }
 
 .dimension-label {
-  font-size: 0.8rem; /* Daha küçük font */
+  font-size: 0.9rem; 
   color: var(--text-secondary);
 }
 
@@ -847,39 +862,43 @@ input[type="range"]:active::-webkit-slider-thumb {
 .style-option-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Daha kompakt stil seçenekleri */
-  gap: 0.5rem; /* Daha az gap */
+  gap: 0.8rem; /* Increased gap */
 }
 
 .style-option {
-  background: var(--bg-primary); /* Stil seçenekleri arka planı */
-  border: 1px solid var(--glass-border);
-  padding: 0.4rem; /* Daha az padding */
-  border-radius: 6px; /* Daha küçük border radius */
+  background: var(--bg-secondary); /* Darker background */
+  border: 2px solid var(--glass-border); /* Consistent border */
+  padding: 0.6rem; /* Increased padding */
+  border-radius: 8px; /* Consistent radius */
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.8rem; /* Daha küçük font */
+  font-size: 0.9rem; 
+  font-weight: 500;
 }
 
 .style-option:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
 .style-option.selected {
-  background: linear-gradient(135deg, rgba(110, 86, 207, 0.2), rgba(192, 132, 252, 0.2)); /* Seçili stil arka planı */
-  border-color: var(--accent-primary);
-  color: var(--accent-secondary);
+  background: var(--accent-primary); 
+  border-color: var(--accent-secondary); /* Contrasting border */
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(110, 86, 207, 0.5);
 }
 
 /* FEATURES LIST */
 .features-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Daha az gap */
+  gap: 0.8rem; /* Increased gap */
 }
 
-.feature-item { display: flex; align-items: center; }
+.feature-item { display: flex; align-items: center; margin-bottom: 0.3rem; }
 .feature-checkbox { display: none; } /* Gerçek checkbox'ı gizle */
 
 .feature-label {
@@ -887,45 +906,45 @@ input[type="range"]:active::-webkit-slider-thumb {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 0.5rem 0.8rem; /* Daha az padding */
-  border-radius: 8px; /* Daha küçük border radius */
-  background: var(--bg-primary);
-  border: 1px solid var(--glass-border);
+  padding: 0.7rem 1rem; /* Increased padding */
+  border-radius: 8px; 
+  background: var(--bg-secondary); /* Darker background */
+  border: 2px solid var(--glass-border); /* Consistent border */
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative; /* Pseudo-element için */
-  padding-left: 2.4rem; /* Daha az checkbox alanı */
-  font-size: 0.85rem; /* Daha küçük font */
+  padding-left: 2.8rem; /* Space for custom checkbox */
+  font-size: 0.9rem; 
 }
 
 .feature-label::before { /* Özel checkbox görünümü */
   content: "";
   position: absolute;
-  left: 0.8rem; /* Daha az left */
+  left: 1rem; 
   top: 50%;
   transform: translateY(-50%);
-  width: 16px; /* Daha küçük checkbox */
-  height: 16px;
-  border-radius: 4px; /* Daha küçük border radius */
-  border: 2px solid var(--glass-border);
+  width: 20px; 
+  height: 20px;
+  border-radius: 5px; 
+  border: 2px solid var(--accent-secondary); /* Use accent for border */
   background-color: transparent;
   transition: all 0.2s ease;
 }
 
 .feature-checkbox:checked + .feature-label { /* Seçili checkbox */
-  background: linear-gradient(135deg, rgba(110, 86, 207, 0.1), rgba(192, 132, 252, 0.1));
-  border-color: var(--accent-primary);
+  background: linear-gradient(135deg, rgba(110, 86, 207, 0.2), rgba(192, 132, 252, 0.2));
+  border-color: var(--accent-primary); /* Stronger border for selected label */
 }
 
 .feature-checkbox:checked + .feature-label::before { /* Seçili checkbox içi */
-  background-color: var(--accent-primary);
-  border-color: var(--accent-primary);
+  background-color: var(--accent-primary); /* Fill with primary accent */
+  border-color: var(--accent-secondary); /* Keep border consistent or slightly different */
 }
 
 .feature-checkbox:checked + .feature-label::after { /* Seçili checkbox tik işareti */
   content: "✓";
   position: absolute;
-  left: 1.15rem; /* Daha az left */
+  left: 1.35rem; 
   top: 50%;
   transform: translateY(-50%);
   color: white;
@@ -943,24 +962,24 @@ input[type="range"]:active::-webkit-slider-thumb {
 .pricing-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem; /* Daha az gap */
-  margin-bottom: 1rem; /* Daha az margin */
+  gap: 0.5rem; /* Increased gap */
+  margin-bottom: 1.2rem; /* Increased margin */
 }
 
 .price-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.3rem 0; /* Daha az padding */
+  padding: 0.5rem 0; /* Increased padding */
   border-bottom: 1px solid var(--glass-border);
-  font-size: 0.85rem; /* Daha küçük font */
+  font-size: 0.9rem; 
 }
 
 .price-row:last-child { border-bottom: none; }
 
 .price-row.total {
-  font-size: 1rem; /* Daha küçük toplam font */
-  font-weight: 600;
-  padding-top: 0.6rem; /* Daha az padding */
+  font-size: 1.15rem; /* Larger total font */
+  font-weight: 700; /* Bolder total */
+  padding-top: 0.8rem; 
   border-bottom: none;
   color: var(--text-primary);
 }
@@ -969,20 +988,20 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 .order-btn {
   width: 100%;
-  padding: 0.8rem; /* Daha az padding */
+  padding: 1rem; /* Larger padding */
   background: var(--gradient-1);
   border: none;
-  border-radius: 8px; /* Daha küçük border radius */
+  border-radius: 10px; 
   color: white;
-  font-size: 0.9rem; /* Daha küçük font */
-  font-weight: 600;
+  font-size: 1.1rem; /* Larger font */
+  font-weight: 700; /* Bolder text */
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .order-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(110, 86, 207, 0.4);
+  transform: translateY(-3px) scale(1.02); /* More pronounced hover */
+  box-shadow: 0 8px 25px rgba(110, 86, 207, 0.6); /* Stronger shadow */
 }
 
 /* ANIMATION CLASSES */
@@ -1460,5 +1479,75 @@ input[type="range"]:active::-webkit-slider-thumb {
   }
   .material-desc {
     font-size: 0.65rem;
+  }
+
+  /* Further reduce preview container height on very small screens */
+  .preview-container {
+    min-height: 320px;
+    height: 320px;
+  }
+
+  .container {
+    padding: 0.5rem 0.3rem; /* Reduce side padding further */
+    gap: 0.8rem;
+  }
+
+  .panel-section {
+    padding: 0.6rem; /* Reduce padding in sections */
+  }
+
+  .panel-section-title {
+    font-size: 0.85rem; /* Slightly smaller titles */
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.6rem; /* Smaller header title */
+  }
+  .header p {
+    font-size: 0.85rem; /* Smaller header paragraph */
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-primary {
+    padding: 0.8rem 1.5rem; /* Smaller main button */
+    font-size: 0.9rem;
+  }
+  
+  .social-icons a {
+    width: 36px; /* Smaller social icons */
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .zoom-slider-container {
+    max-width: 100px; /* Further restrict zoom slider */
+  }
+
+  .dimension-label,
+  .dimension-value-container {
+    font-size: 0.8rem; /* Slightly smaller dimension text */
+  }
+  .dimension-input {
+    width: 45px; /* Slightly smaller input */
+    font-size: 0.8rem;
+    padding: 0.25rem 0.35rem;
+  }
+  .dimension-error-message {
+    font-size: 0.8rem;
+    text-align: left; /* Align with label */
+    margin-left: 0; /* Remove margin if text-align left */
+    padding-bottom: 0.3rem; /* Space below error message */
+  }
+
+  .color-item {
+    width: 28px; /* Adjusted from 26px based on general upscaling */
+    height: 28px;
+  }
+
+  .control-btn, .view-btn, .zoom-btn, .action-btn {
+    width: 44px; /* Reverted to a slightly larger, consistent size */
+    height: 44px;
+    font-size: 1.1rem;
   }
 }
