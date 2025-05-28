@@ -73,11 +73,8 @@ function updatePricing() {
         var tableLength = parseFloat(tableLengthInput.value);
         var area = tableWidth * tableLength;
         var standardArea = 109 * 150; // Standard area for base price
-
-        if (area > standardArea) {
-            // Add cost for larger sizes, e.g., 0.1 units of currency per cm² over standard
-            basePrice += Math.round((area - standardArea) * 0.1);
-        }
+        var areaRate = 0.1; // The rate per cm² over standard
+        basePrice += calculateAreaSurcharge(area, standardArea, areaRate);
     }
     // Add price adjustments for height or thickness if needed
 
@@ -164,5 +161,20 @@ window.UtilsModule = {
     updatePricing,
     updateDimensionsLabel,
     updateDimensionDisplay,
-    initScrollReveal
+    initScrollReveal,
+    calculateAreaSurcharge // Export the new function
 };
+
+/**
+ * Calculates the surcharge based on area exceeding a standard.
+ * @param {number} currentArea - The current area of the table.
+ * @param {number} standardArea - The standard area for the base price.
+ * @param {number} ratePerSqCmOverStandard - The rate per square cm over the standard.
+ * @returns {number} The calculated surcharge, or 0 if area is not over standard.
+ */
+function calculateAreaSurcharge(currentArea, standardArea, ratePerSqCmOverStandard) {
+    if (currentArea > standardArea) {
+        return Math.round((currentArea - standardArea) * ratePerSqCmOverStandard);
+    }
+    return 0;
+}

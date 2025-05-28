@@ -4,6 +4,14 @@
  * Tüm modülleri başlatır ve uygulama durumunu yönetir
  */
 
+const DEBUG_MODE = true; // Set to false to disable most logs
+
+function debugLog(...args) {
+    if (DEBUG_MODE) {
+        console.log(...args);
+    }
+}
+
 // Uygulama durumu (Global state object for the application)
 var appState = {
     tableWidth: 109, // Varsayılan boyutlar (cm) (Default dimensions in cm)
@@ -24,6 +32,146 @@ var appState = {
     isAutoRotating: false, // Otomatik döndürme durumu
     autoRotateSpeed: 0.01 // Döndürme hızı
 };
+
+// LOCALSTORAGE FUNCTIONS
+/**
+ * Saves the relevant application state to localStorage.
+ */
+function saveStateToLocalStorage() {
+    try {
+        const featuresCheckboxes = document.querySelectorAll('.feature-checkbox:checked');
+        const selectedFeatures = Array.from(featuresCheckboxes).map(cb => cb.id);
+
+        const stateToSave = {
+            tableWidth: appState.tableWidth,
+            tableLength: appState.tableLength,
+            tableHeight: appState.tableHeight,
+            tableThickness: appState.tableThickness,
+            currentColor: appState.currentColor,
+            currentColorName: appState.currentColorName,
+            currentMaterialInfo: appState.currentMaterialInfo, // Consistent with previous tasks
+            currentMaterialName: appState.currentMaterialName,
+            edgeStyle: appState.edgeStyle,
+            legStyle: appState.legStyle,
+            selectedFeatures: selectedFeatures
+        };
+        localStorage.setItem('masaKraftState', JSON.stringify(stateToSave));
+        debugLog("MAIN.JS: State saved to localStorage.");
+    } catch (error) {
+        console.error("MAIN.JS: Error saving state to localStorage:", error);
+    }
+}
+
+/**
+ * Loads application state from localStorage and updates UI.
+ */
+function loadStateFromLocalStorage() {
+    try {
+        const savedStateJSON = localStorage.getItem('masaKraftState');
+        if (!savedStateJSON) {
+            debugLog("MAIN.JS: No saved state found in localStorage.");
+            return;
+        }
+
+        const savedState = JSON.parse(savedStateJSON);
+
+        // Update appState
+        appState.tableWidth = savedState.tableWidth || appState.tableWidth;
+        appState.tableLength = savedState.tableLength || appState.tableLength;
+        appState.tableHeight = savedState.tableHeight || appState.tableHeight;
+        appState.tableThickness = savedState.tableThickness || appState.tableThickness;
+        appState.currentColor = savedState.currentColor || appState.currentColor;
+        appState.currentColorName = savedState.currentColorName || appState.currentColorName;
+        appState.currentMaterialInfo = savedState.currentMaterialInfo || appState.currentMaterialInfo;
+        appState.currentMaterialName = savedState.currentMaterialName || appState.currentMaterialName;
+        appState.edgeStyle = savedState.edgeStyle || appState.edgeStyle;
+        appState.legStyle = savedState.legStyle || appState.legStyle;
+        // Note: `currentMaterial` in appState might also need to be updated if it's distinct from currentMaterialInfo
+        appState.currentMaterial = appState.currentMaterialInfo;
+
+
+        // Update UI Elements
+        // Dimensions
+        const dimensions = ['width', 'length', 'height', 'thickness'];
+        dimensions.forEach(dim => {
+            const dimensionValue = appState[`table${dim.charAt(0).toUpperCase() + dim.slice(1)}`];
+            const slider = document.getElementById(`${dim}-slider`);
+            const input = document.getElementById(`${dim}-input`);
+            if (slider) slider.value = dimensionValue;
+            if (input) input.value = dimensionValue;
+        });
+
+        // Color Picker
+        document.querySelectorAll('.color-item').forEach(item => {
+            item.classList.remove('selected');
+            item.setAttribute('aria-checked', 'false');
+            item.setAttribute('tabindex', '-1');
+            if (item.getAttribute('data-color').toUpperCase() === appState.currentColor.toUpperCase()) {
+                item.classList.add('selected');
+                item.setAttribute('aria-checked', 'true');
+                item.setAttribute('tabindex', '0');
+            }
+        });
+
+        // Material Info
+        document.querySelectorAll('.material-info-item').forEach(item => {
+            item.classList.remove('selected');
+            item.setAttribute('aria-checked', 'false');
+            item.setAttribute('tabindex', '-1');
+            if (item.getAttribute('data-material') === appState.currentMaterialInfo) {
+                item.classList.add('selected');
+                item.setAttribute('aria-checked', 'true');
+                item.setAttribute('tabindex', '0');
+            }
+        });
+
+        // Edge Style
+        document.querySelectorAll('.style-option[data-edge]').forEach(opt => opt.classList.remove('selected'));
+        const selectedEdge = document.querySelector(`.style-option[data-edge="${appState.edgeStyle}"]`);
+        if (selectedEdge) selectedEdge.classList.add('selected');
+
+        // Leg Style
+        document.querySelectorAll('.style-option[data-leg]').forEach(opt => opt.classList.remove('selected'));
+        const selectedLeg = document.querySelector(`.style-option[data-leg="${appState.legStyle}"]`);
+        if (selectedLeg) selectedLeg.classList.add('selected');
+
+        // Features
+        document.querySelectorAll('.feature-checkbox').forEach(cb => cb.checked = false); // Deselect all first
+        if (savedState.selectedFeatures && Array.isArray(savedState.selectedFeatures)) {
+            savedState.selectedFeatures.forEach(featureId => {
+                const checkbox = document.getElementById(featureId);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        debugLog("MAIN.JS: State loaded from localStorage and UI updated.");
+
+        // Trigger updates after loading state
+        updateTableModel();
+        if (window.UtilsModule) {
+            window.UtilsModule.updatePricing();
+            window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
+        }
+        if (window.DimensionLabelsModule && appState.scene && appState.camera) { // Ensure scene and camera are ready
+             // Delay this call slightly to ensure the model is fully updated and camera is positioned
+            setTimeout(() => {
+                window.DimensionLabelsModule.updateDimensionLabels(appState.scene, {
+                    width: appState.tableWidth,
+                    length: appState.tableLength,
+                    height: appState.tableHeight
+                });
+                 window.DimensionLabelsModule.setCamera(appState.camera); // Ensure camera is set
+            }, 200); // Adjust delay if needed
+        }
+
+
+    } catch (error) {
+        console.error("MAIN.JS: Error loading or parsing state from localStorage:", error);
+        // Optionally clear corrupted state
+        // localStorage.removeItem('masaKraftState');
+    }
+}
+
 
 /**
  * Three.js sahnesini ve ilgili tüm bileşenleri başlatır
@@ -180,7 +328,7 @@ function updateTableModel() {
         legStyle: appState.legStyle
     };
 
-    console.log("Masa modeli güncelleniyor, malzeme:", appState.currentMaterial, "Ayak Stili:", appState.legStyle);
+    debugLog("Masa modeli güncelleniyor, malzeme:", appState.currentMaterial, "Ayak Stili:", appState.legStyle);
 
     // Mevcut yapılandırma ile masa oluştur (Create table with current configuration)
     if (window.TableModelModule && appState.scene) {
@@ -195,7 +343,7 @@ function updateTableModel() {
                 window.TableModelModule.updateModelHeader(appState.currentMaterial, appState.edgeStyle);
 
                 // Model başarıyla oluşturuldu - texture kontrolü artık gerekli değil (renkler kullanıyoruz)
-                console.log("MAIN.JS: Masa modeli başarıyla oluşturuldu ve sahneye eklendi.");
+                debugLog("MAIN.JS: Masa modeli başarıyla oluşturuldu ve sahneye eklendi.");
 
             }, 50); // 50ms gecikme
 
@@ -241,12 +389,12 @@ function toggleAutoRotate() {
         playBtn.classList.add('active');
         icon.className = 'fas fa-pause';
         playBtn.title = 'Döndürmeyi Durdur';
-        console.log('MAIN.JS: Otomatik döndürme başlatıldı');
+        debugLog('MAIN.JS: Otomatik döndürme başlatıldı');
     } else {
         playBtn.classList.remove('active');
         icon.className = 'fas fa-play';
         playBtn.title = 'Otomatik Döndürme';
-        console.log('MAIN.JS: Otomatik döndürme durduruldu');
+        debugLog('MAIN.JS: Otomatik döndürme durduruldu');
     }
 }
 
@@ -280,7 +428,7 @@ function downloadScreenshot() {
         link.click();
         document.body.removeChild(link);
 
-        console.log('MAIN.JS: Ekran görüntüsü indirildi');
+        debugLog('MAIN.JS: Ekran görüntüsü indirildi');
 
         // Butonu normale döndür
         setTimeout(() => {
@@ -360,52 +508,91 @@ function initEventListeners() {
                 appState.currentColor = selectedColor;
                 appState.currentColorName = colorName;
 
-                console.log("MAIN.JS: ✅ Renk seçildi:", colorName, "->", selectedColor);
+                debugLog("MAIN.JS: ✅ Renk seçildi:", colorName, "->", selectedColor);
 
                 // Masa modelini güncelle
                 updateTableModel();
                 if (window.UtilsModule) window.UtilsModule.updatePricing();
+                saveStateToLocalStorage(); // Save state
             }
         });
     }
 
-    // Malzeme bilgi seçimi (Material info selection) - Sadece bilgi amaçlı
+    // Malzeme bilgi seçimi (Material info selection)
     const materialGrid = document.querySelector('.material-grid');
     if (materialGrid) {
         materialGrid.addEventListener('click', function(event) {
-            // Tıklanan element'i veya en yakın .material-info-item'ı bul
             let clickedItem = event.target.closest('.material-info-item');
+            if (!clickedItem) return;
 
-            if (!clickedItem) {
-                return;
-            }
-
-            // Önceki seçimi kaldır (Remove previous selection)
-            document.querySelectorAll('.material-info-item').forEach(function(i) {
+            // Önceki malzeme seçimini kaldır
+            document.querySelectorAll('.material-info-item').forEach(i => {
                 i.classList.remove('selected');
                 i.setAttribute('aria-checked', 'false');
                 i.setAttribute('tabindex', '-1');
             });
 
-            // Yeni öğeyi seç (Select the new item)
+            // Yeni malzemeyi seç
             clickedItem.classList.add('selected');
             clickedItem.setAttribute('aria-checked', 'true');
             clickedItem.setAttribute('tabindex', '0');
 
-            // Seçilen malzeme bilgisini al
-            const selectedMaterial = clickedItem.getAttribute('data-material');
-            const materialName = clickedItem.querySelector('.material-name').textContent;
+            const materialIdentifier = clickedItem.getAttribute('data-material');
+            const materialDisplayName = clickedItem.querySelector('.material-name').textContent;
+            const materialPreviewElement = clickedItem.querySelector('.material-preview');
+            let materialColor = '#FFFFFF'; // Default color if parsing fails
 
-            if (selectedMaterial) {
-                // appState'e malzeme bilgisini kaydet (sadece bilgi amaçlı)
-                appState.currentMaterialInfo = selectedMaterial;
-                appState.currentMaterialName = materialName;
-
-                console.log("MAIN.JS: ℹ️ Malzeme bilgisi seçildi:", materialName, "->", selectedMaterial);
-
-                // Not: Masa modelini güncelleme - sadece bilgi amaçlı
-                // updateTableModel(); // Bu satır kapalı - sadece bilgi gösterimi
+            if (materialPreviewElement) {
+                // RGB'den HEX'e dönüştürme fonksiyonu (Basit)
+                const rgbToHex = (rgb) => {
+                    if (!rgb || !rgb.startsWith('rgb')) return '#FFFFFF'; // Geçersizse default
+                    const parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                    if (!parts) return '#FFFFFF';
+                    delete parts[0];
+                    for (let i = 1; i <= 3; ++i) {
+                        parts[i] = parseInt(parts[i]).toString(16);
+                        if (parts[i].length === 1) parts[i] = '0' + parts[i];
+                    }
+                    return `#${parts.join('')}`.toUpperCase();
+                };
+                materialColor = rgbToHex(window.getComputedStyle(materialPreviewElement).backgroundColor);
             }
+
+            // appState güncelle
+            appState.currentMaterial = materialIdentifier; // Veya appState.currentMaterialInfo
+            appState.currentMaterialInfo = materialIdentifier; // Bilgi için de güncelle
+            appState.currentMaterialName = materialDisplayName;
+            appState.currentColor = materialColor;
+            appState.currentColorName = materialDisplayName; // Malzeme adını renk adı olarak kullan
+
+            debugLog("MAIN.JS: 💎 Malzeme seçildi:", materialDisplayName, "->", materialIdentifier, "Renk:", materialColor);
+
+            // Renk seçici UI'sini senkronize et
+            const colorItems = document.querySelectorAll('.color-item');
+            let colorMatched = false;
+            colorItems.forEach(item => {
+                item.classList.remove('selected');
+                item.setAttribute('aria-checked', 'false');
+                item.setAttribute('tabindex', '-1');
+                if (item.getAttribute('data-color').toUpperCase() === materialColor.toUpperCase()) {
+                    item.classList.add('selected');
+                    item.setAttribute('aria-checked', 'true');
+                    item.setAttribute('tabindex', '0');
+                    colorMatched = true;
+                }
+            });
+             if (!colorMatched) {
+                console.warn("MAIN.JS: Malzeme rengi (" + materialColor + ") renk seçicide bulunamadı.");
+                // İsteğe bağlı: Renk seçicide eşleşme yoksa özel bir durum ele alınabilir.
+                // Örneğin, renk seçicide seçili öğeyi temizleyebilir veya ilk öğeyi seçebilirsiniz.
+                // Şimdilik, eşleşme yoksa renk seçici UI'ı değişmeden kalır.
+            }
+
+
+            // Masa modelini ve fiyatı güncelle
+            updateTableModel();
+            if (window.UtilsModule) window.UtilsModule.updatePricing();
+            saveStateToLocalStorage(); // Save state
         });
     }
 
@@ -440,6 +627,16 @@ function initEventListeners() {
             // Dimension-specific validation
             var isValid = true;
             var errorMessage = '';
+            var dimensionRow = sourceInput.closest('.dimension-row');
+            var errorSpan = dimensionRow.querySelector('.dimension-error-message');
+
+            // Clear previous error message
+            if (errorSpan) {
+                errorSpan.textContent = '';
+                errorSpan.style.display = 'none';
+            }
+            sourceInput.classList.remove('invalid');
+
 
             switch(dimension) {
                 case 'width':
@@ -470,23 +667,25 @@ function initEventListeners() {
 
             if (!isValid) {
                 console.warn(`Validation failed for ${dimension}: ${errorMessage}`);
-                // Visual feedback for invalid input
                 if (sourceInput.type === 'number') {
                     sourceInput.classList.add('invalid');
-                    setTimeout(() => sourceInput.classList.remove('invalid'), 1000);
                 }
-                return;
-            }
-
-            // Visual feedback for valid input
-            if (sourceInput.type === 'number') {
-                sourceInput.classList.remove('invalid');
-                sourceInput.classList.add('valid');
-                setTimeout(() => sourceInput.classList.remove('valid'), 500);
+                if (errorSpan) {
+                    errorSpan.textContent = errorMessage;
+                    errorSpan.style.display = 'block'; // Or 'inline'
+                }
+                return; // Stop further processing if validation fails
+            } else {
+                 // Visual feedback for valid input (optional, if you want to remove 'valid' class after some time)
+                if (sourceInput.type === 'number') {
+                    sourceInput.classList.remove('invalid'); // Ensure invalid is removed
+                    sourceInput.classList.add('valid');
+                    setTimeout(() => sourceInput.classList.remove('valid'), 500);
+                }
             }
 
             // Sync between slider and input
-            var dimensionRow = sourceInput.closest('.dimension-row');
+            // var dimensionRow = sourceInput.closest('.dimension-row'); // Moved up
             var slider = dimensionRow.querySelector('input[type="range"]');
             var numberInput = dimensionRow.querySelector('input[type="number"]');
 
@@ -523,28 +722,32 @@ function initEventListeners() {
             // Use both throttled (immediate) and debounced (final) updates
             throttledModelUpdate(); // Immediate response while sliding
             debouncedModelUpdate(); // Final update when sliding stops
-            debouncedPricingUpdate();
+            debouncedPricingUpdate(); // This already calls updatePricing
+            // saveStateToLocalStorage(); // This will be called by the debounced/throttled updates or final change
         }
 
         // Add event listeners based on input type
         if (input.type === 'range') {
             // Slider events
             input.addEventListener('input', function() {
-                handleDimensionUpdate(input);
+                handleDimensionUpdate(input); // saveState will be handled by debounced update
             });
-            input.addEventListener('change', function() {
+            input.addEventListener('change', function() { // Final change
                 handleDimensionUpdate(input);
+                saveStateToLocalStorage();
             });
         } else if (input.type === 'number') {
             // Number input events
-            input.addEventListener('input', function() {
+            input.addEventListener('input', function() { // More frequent
                 handleDimensionUpdate(input);
             });
-            input.addEventListener('change', function() {
+            input.addEventListener('change', function() { // When focus is lost or Enter is pressed
                 handleDimensionUpdate(input);
+                saveStateToLocalStorage();
             });
-            input.addEventListener('blur', function() {
+            input.addEventListener('blur', function() { // When focus is lost
                 handleDimensionUpdate(input);
+                saveStateToLocalStorage();
             });
 
             // Enter key support
@@ -575,6 +778,7 @@ function initEventListeners() {
             }
             updateTableModel();
             if (window.UtilsModule) window.UtilsModule.updatePricing();
+            saveStateToLocalStorage(); // Save state
         });
     });
 
@@ -582,6 +786,7 @@ function initEventListeners() {
     document.querySelectorAll('.feature-checkbox').forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
             if (window.UtilsModule) window.UtilsModule.updatePricing(); // Sadece fiyatı güncelle
+            saveStateToLocalStorage(); // Save state
         });
     });
 
@@ -619,8 +824,8 @@ function initEventListeners() {
             let featureText = selectedConfiguration.features.length > 0 ? ` Ek Özellikler: ${selectedConfiguration.features.join(', ')}.` : '';
             orderMessageDiv.textContent = `Siparişiniz alındı! ${totalPrice} tutarındaki ${selectedConfiguration.material} masanız (${selectedConfiguration.width}x${selectedConfiguration.length}cm, ${selectedConfiguration.edgeStyle} kenar, ${selectedConfiguration.legStyle} ayak)${featureText} Yakında hazırlanacaktır.`;
 
-            console.log("Sipariş Tamamlandı:", selectedConfiguration);
-            console.log("Toplam Fiyat:", totalPrice);
+            debugLog("Sipariş Tamamlandı:", selectedConfiguration);
+            debugLog("Toplam Fiyat:", totalPrice);
 
             // Birkaç saniye sonra mesajı temizle (isteğe bağlı) (Clear message after a few seconds (optional))
             setTimeout(function() {
@@ -709,18 +914,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tüm olay dinleyicilerini başlat (Initialize all event listeners)
     initEventListeners();
 
+    // Load state from localStorage BEFORE initial model rendering that might use defaults
+    loadStateFromLocalStorage(); 
+
     // Kaydırma ortaya çıkarma animasyonlarını ve fiyatlandırmayı başlat (Initialize scroll reveal animations and pricing)
     window.UtilsModule.initScrollReveal();
-    window.UtilsModule.updatePricing();
+    // updatePricing and updateDimensionsLabel are called within loadStateFromLocalStorage if state is loaded
+    // If no state is loaded, these ensure defaults are applied.
+    if (!localStorage.getItem('masaKraftState')) {
+        window.UtilsModule.updatePricing();
+        window.UtilsModule.updateDimensionsLabel(appState.tableWidth, appState.tableLength);
+    }
+
 
     // İlk yüklemede ölçüleri göster (Show dimensions on initial load)
+    // This might be redundant if loadStateFromLocalStorage already calls updateDimensionLabels,
+    // but kept for safety if scene/camera isn't ready immediately during loadState.
     setTimeout(function() {
         if (window.DimensionLabelsModule && appState.scene && appState.camera) {
-            window.DimensionLabelsModule.createDimensionLabels(appState.scene, {
+            // Ensure labels are created if not already, or updated.
+            // createDimensionLabels might be better if they are not guaranteed to exist.
+            // For now, assuming updateDimensionLabels handles creation if needed or they are created by default.
+            window.DimensionLabelsModule.updateDimensionLabels(appState.scene, {
                 width: appState.tableWidth,
                 length: appState.tableLength,
                 height: appState.tableHeight
-            }, appState.camera);
+            });
+            window.DimensionLabelsModule.setCamera(appState.camera);
         }
-    }, 2000); // Masa modeli yüklendikten sonra ölçüleri göster
+    }, 2000); // Delay to ensure model and camera are fully initialized, especially after state load.
 });

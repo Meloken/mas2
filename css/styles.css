@@ -1069,6 +1069,17 @@ input[type="range"]:active::-webkit-slider-thumb {
     75% { transform: translateX(3px); }
 }
 
+.dimension-error-message {
+    color: #e74c3c; /* A shade of red */
+    font-size: 0.85em;
+    margin-left: 10px; /* Align with dimension inputs or adjust as needed */
+    display: none; /* Initially hidden, controlled by JS */
+    flex-basis: 100%; /* Ensure it takes full width in flex/grid context if needed */
+    grid-column: 1 / -1; /* Span all columns in grid if dimension-row is a grid */
+    text-align: right; /* Or left, depending on layout */
+    padding-top: 0.2rem;
+}
+
 /* SCROLL ANIMATIONS */
 .reveal { /* Kaydırma ile ortaya çıkan bölümler */
   opacity: 0;
